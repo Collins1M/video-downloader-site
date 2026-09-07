@@ -1,0 +1,61 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Lint
+        run: npm run lint
+        
+      - name: Typecheck
+        run: npm run typecheck
+        
+      - name: Unit Tests (Vitest)
+        run: npm run test
+        
+      - name: Build
+        run: npm run build
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        
+      - name: E2E Tests (Playwright)
+        run: npm run e2e
+        
+  deploy:
+    name: Deploy to VPS
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executing remote ssh commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd root/video-downloader-site
+            git pull origin main
+            # Deploy using Docker Compose
+            docker compose up -d --build
+            # Cleanup unused images to save disk space
+            docker image prune -f

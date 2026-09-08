@@ -8,7 +8,7 @@ export function PrivacySection() {
         <p className="mt-4 text-balance leading-relaxed text-ink-muted">
           Your downloads are delivered to your device. Temporary processing data — the video and
           audio streams fetched to build your file — is automatically removed once a download
-          finishes, fails, or is abandoned. We don't keep a library of what you've downloaded.
+          finishes, fails, or is abandoned. We don&apos;t keep a library of what you&apos;ve downloaded.
         </p>
       </div>
     </section>

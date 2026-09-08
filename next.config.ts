@@ -1,7 +1,7 @@
-const { buildSecurityHeaders } = require("./security-headers");
+import type { NextConfig } from "next";
+import { buildSecurityHeaders } from "./security-headers";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   experimental: {},
   async headers() {
@@ -14,4 +14,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

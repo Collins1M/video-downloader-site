@@ -2,11 +2,14 @@
   "name": "video-downloader-frontend",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint .",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "e2e": "playwright test"
@@ -33,10 +36,12 @@
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.5.4",
     "axe-core": "^4.13.0",
+    "eslint": "^9.21.0",
+    "eslint-config-next": "^16.3.3",
     "jsdom": "^30.0.1",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2",
+    "typescript": "6.0.3",
     "vitest": "^4.1.11",
     "vitest-axe": "^0.1.0"
   }

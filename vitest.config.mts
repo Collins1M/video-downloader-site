@@ -12,8 +12,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "."),
-      "@video-downloader/types": path.resolve(__dirname, "../../packages/types/src"),
+      "@": path.resolve(import.meta.dirname, "."),
+      "@video-downloader/types": path.resolve(import.meta.dirname, "./packages/types/src"),
     },
   },
 });

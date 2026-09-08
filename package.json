@@ -12,8 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "e2e": "playwright test",
-    "test:e2e:server": "next experimental-test"
+    "e2e": "next experimental-test"
   },
   "dependencies": {
     "@sentry/browser": "^10.72.0",

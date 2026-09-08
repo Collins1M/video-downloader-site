@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "next/experimental/testmode/playwright";
 
 const analyzeResponse = {
   success: true,
@@ -15,28 +15,37 @@ const analyzeResponse = {
 };
 
 test.describe("Homepage — download flow (happy path)", () => {
-  test("analyze a URL, pick a format, watch progress, and reach completion", async ({ page }) => {
-    await page.route("**/api/video/analyze", (route) =>
-      route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify(analyzeResponse) }),
-    );
-
-    await page.route("**/api/video/download", (route) =>
-      route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ jobId: "e2e-job-1" }) }),
-    );
-
-    let pollCount = 0;
-    await page.route("**/api/video/jobs/e2e-job-1", (route) => {
-      pollCount += 1;
-      const body =
-        pollCount < 2
-          ? { id: "e2e-job-1", status: "processing", progress: 45 }
-          : { id: "e2e-job-1", status: "completed", progress: 100 };
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+  test("analyze a URL, pick a format, watch progress, and reach completion", async ({ page, next }) => {
+    // Intercept Server-side fetches (Server Actions)
+    next.onFetch((request) => {
+      if (request.url.includes("/api/video/analyze")) {
+        return new Response(JSON.stringify(analyzeResponse), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (request.url.includes("/api/video/download")) {
+        return new Response(JSON.stringify({ jobId: "e2e-job-1" }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return undefined;
     });
 
-    // The completion handler navigates a hidden <a> to this URL — no
-    // need to fulfill real bytes for the test to prove the flow wired
-    // up correctly end to end.
+    // Intercept Client-side SSE (EventSource)
+    await page.route("**/api/video/jobs/e2e-job-1/events", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "text/event-stream",
+        body: [
+          `data: ${JSON.stringify({ id: "e2e-job-1", status: "processing", progress: 45 })}\n\n`,
+          `data: ${JSON.stringify({ id: "e2e-job-1", status: "completed", progress: 100 })}\n\n`,
+        ].join(""),
+      });
+    });
+
+    // Intercept final file download trigger
     await page.route("**/api/video/jobs/e2e-job-1/file", (route) =>
       route.fulfill({ status: 200, contentType: "video/mp4", body: "fake video bytes" }),
     );
@@ -54,22 +63,30 @@ test.describe("Homepage — download flow (happy path)", () => {
 
     await expect(page.getByText(/preparing your download/i)).toBeVisible();
 
-    // Wait through the polling cycle to completion — the panel returns
-    // to idle shortly after the download is handed off to the browser.
-    await expect(page.getByPlaceholder("Paste video URL here...")).toBeVisible({ timeout: 10_000 });
+    // Wait for completion — the panel returns to idle shortly after the download is handed off.
+    await expect(page.getByPlaceholder("Paste video URL here...")).toBeVisible({ timeout: 15_000 });
   });
 
-  test("shows a friendly error for an invalid URL", async ({ page }) => {
-    await page.route("**/api/video/analyze", (route) =>
-      route.fulfill({
-        status: 400,
-        contentType: "application/json",
-        body: JSON.stringify({ success: false, message: "Please enter a valid video URL.", code: "INVALID_URL" }),
-      }),
-    );
+  test("shows a friendly error for an invalid URL", async ({ page, next }) => {
+    next.onFetch((request) => {
+      if (request.url.includes("/api/video/analyze")) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Please enter a valid video URL.",
+            code: "INVALID_URL",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      return undefined;
+    });
 
     await page.goto("/");
-    await page.getByPlaceholder("Paste video URL here...").fill("not-a-real-url-but-has-enough-chars");
+    await page.getByPlaceholder("Paste video URL here...").fill("not-a-real-url");
     await page.getByRole("button", { name: /analyze video/i }).click();
 
     await expect(page.getByText("Please enter a valid video URL.")).toBeVisible();

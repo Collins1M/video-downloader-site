@@ -3,7 +3,9 @@ import { buildSecurityHeaders } from "./security-headers";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {},
+  experimental: {
+    testProxy: true,
+  },
   async headers() {
     return [
       {

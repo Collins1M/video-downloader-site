@@ -5,7 +5,8 @@ const getBaseUrl = () => {
     // In the browser, we prioritize the env var, but fallback to relative path if needed
     return process.env.NEXT_PUBLIC_API_URL || "";
   }
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  // On the server, we prioritize the internal Docker URL if available
+  return process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 };
 
 const rawBaseUrl = getBaseUrl();

@@ -1,9 +1,9 @@
 FROM node:22-slim AS deps
 WORKDIR /app
-COPY package.json ./
-COPY packages/types ./packages/types
-# We don't have a lockfile yet in the new directory, so we run install
-RUN npm install --audit=false
+COPY package.json package-lock.json ./
+COPY packages/types/package.json ./packages/types/package.json
+# Upgrade npm to fix known bugs like "edgesOut"
+RUN npm install -g npm@latest && npm ci --audit=false
 
 FROM deps AS builder
 WORKDIR /app

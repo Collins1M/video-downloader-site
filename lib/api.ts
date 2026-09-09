@@ -34,37 +34,46 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     });
   }
 
-  const text = await res.text();
-
-  if (!res.ok) {
-    let body: ApiErrorResponse;
-    try {
-      body = JSON.parse(text);
-    } catch {
-      if (res.status === 408 || res.status === 504) {
-        body = {
-          success: false,
-          message: "The request timed out. The video analysis is taking longer than expected.",
-          code: "TIMEOUT",
-        };
-      } else {
-        body = {
-          success: false,
-          message: `Backend error (${res.status}): ${text.slice(0, 100)}`,
-          code: "INTERNAL_ERROR",
-        };
-      }
-    }
-    throw new ApiError(body);
-  }
-
   try {
-    return JSON.parse(text) as T;
+    const text = await res.text();
+
+    if (!res.ok) {
+      let body: ApiErrorResponse;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        if (res.status === 408 || res.status === 504) {
+          body = {
+            success: false,
+            message: "The request timed out. The video analysis is taking longer than expected.",
+            code: "TIMEOUT",
+          };
+        } else {
+          body = {
+            success: false,
+            message: `Backend error (${res.status}): ${text.slice(0, 100)}`,
+            code: "INTERNAL_ERROR",
+          };
+        }
+      }
+      throw new ApiError(body);
+    }
+
+    try {
+      return JSON.parse(text) as T;
+    } catch (err) {
+      console.error(`Failed to parse successful response from ${url}:`, text);
+      throw new ApiError({
+        success: false,
+        message: "Backend returned an invalid response format.",
+        code: "INTERNAL_ERROR",
+      });
+    }
   } catch (err) {
-    console.error(`Failed to parse successful response from ${url}:`, text);
+    if (err instanceof ApiError) throw err;
     throw new ApiError({
       success: false,
-      message: "Backend returned an invalid response format.",
+      message: "An unexpected error occurred while communicating with the backend.",
       code: "INTERNAL_ERROR",
     });
   }

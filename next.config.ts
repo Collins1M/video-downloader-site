@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   experimental: {
     testProxy: true,
+    exposeTestingApiInProductionBuild: true,
   },
   async headers() {
     return [

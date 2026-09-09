@@ -1,6 +1,14 @@
 import type { ApiErrorResponse } from "@video-downloader/types";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const getBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    // In the browser, we prioritize the env var, but fallback to relative path if needed
+    return process.env.NEXT_PUBLIC_API_URL || "";
+  }
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+};
+
+const rawBaseUrl = getBaseUrl();
 // Ensure we always have the /api prefix unless specifically overridden
 export const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
 

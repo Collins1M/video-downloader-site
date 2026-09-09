@@ -1,4 +1,4 @@
-FROM node:20-slim AS deps
+FROM node:22-slim AS deps
 WORKDIR /app
 COPY package.json ./
 COPY packages/types ./packages/types
@@ -10,7 +10,7 @@ WORKDIR /app
 COPY . .
 RUN npm run build
 
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 
 RUN apt-get update \
@@ -25,7 +25,9 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.js ./next.config.js
+COPY --from=builder /app/next.config.ts ./next.config.ts
+COPY --from=builder /app/security-headers.js ./security-headers.js
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 USER nodejs
 

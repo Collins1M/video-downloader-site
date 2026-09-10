@@ -1,6 +1,9 @@
 services:
   web:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://downloader.fplstocks.com}
     image: video-downloader-frontend:latest
     environment:
       NODE_ENV: ${NODE_ENV:-production}

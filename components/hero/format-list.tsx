@@ -18,7 +18,7 @@ function FormatRow({
     format.type === "video"
       ? format.resolution
       : format.type === "gif"
-      ? "Animated"
+      ? `${format.resolution} GIF`
       : `${format.bitrateKbps} kbps`;
 
   return (

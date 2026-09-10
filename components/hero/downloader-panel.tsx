@@ -55,7 +55,7 @@ export function DownloaderPanel() {
       format.type === "video"
         ? `${format.resolution} ${format.container.toUpperCase()}`
         : format.type === "gif"
-        ? "Animated GIF"
+        ? `${format.resolution} Animated GIF`
         : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
 
     const result = await createDownload(url.trim(), format.id);
@@ -68,13 +68,8 @@ export function DownloaderPanel() {
     setFlow({ step: "downloading", jobId, progress: 0, formatLabel });
 
     try {
-      // Replaces the old setInterval + getJobStatus poll (Phase 14, item
-      // 19): the API pushes progress over SSE instead of the client
-      // asking every 1.2s. `withCredentials` is required so the
-      // anonymous session_id cookie rides along — EventSource doesn't
-      // send cookies cross-origin by default the way fetch's
-      // `credentials: "include"` does.
-      const source = new EventSource(getJobEventsUrl(jobId), { withCredentials: true });
+      const eventsUrl = getJobEventsUrl(jobId);
+      const source = new EventSource(eventsUrl, { withCredentials: true });
       eventSourceRef.current = source;
 
       source.onmessage = (event) => {
@@ -88,9 +83,10 @@ export function DownloaderPanel() {
         }
 
         if (status.status === "completed") {
+          const fileUrl = getJobFileUrl(jobId);
           stopStreaming();
           setFlow({ step: "downloading", jobId, progress: 100, formatLabel });
-          downloadLinkRef.current?.setAttribute("href", getJobFileUrl(jobId));
+          downloadLinkRef.current?.setAttribute("href", fileUrl);
           downloadLinkRef.current?.click();
           // Return to idle after a few seconds, giving enough time for the
           // browser's download handoff to feel distinct from the UI reset.

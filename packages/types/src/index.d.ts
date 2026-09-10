@@ -1,4 +1,4 @@
-export type MediaKind = "video" | "audio";
+export type MediaKind = "video" | "audio" | "gif";
 export type JobStatus = "queued" | "processing" | "completed" | "failed" | "cancelled";
 export interface VideoInfo {
     title: string;

@@ -79,24 +79,55 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-export async function analyzeVideo(url: string): Promise<AnalyzeResponse> {
-  return request<AnalyzeResponse>("/video/analyze", {
-    method: "POST",
-    body: JSON.stringify({ url }),
-  });
+export async function analyzeVideo(url: string): Promise<AnalyzeResponse | ApiErrorResponse> {
+  try {
+    return await request<AnalyzeResponse>("/video/analyze", {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    });
+  } catch (err) {
+    if (err instanceof ApiError) {
+      return { success: false, message: err.message, code: err.code as any };
+    }
+    throw err;
+  }
 }
 
-export async function createDownload(url: string, formatId: string): Promise<CreateDownloadResponse> {
-  return request<CreateDownloadResponse>("/video/download", {
-    method: "POST",
-    body: JSON.stringify({ url, formatId }),
-  });
+export async function createDownload(
+  url: string,
+  formatId: string,
+): Promise<CreateDownloadResponse | ApiErrorResponse> {
+  try {
+    return await request<CreateDownloadResponse>("/video/download", {
+      method: "POST",
+      body: JSON.stringify({ url, formatId }),
+    });
+  } catch (err) {
+    if (err instanceof ApiError) {
+      return { success: false, message: err.message, code: err.code as any };
+    }
+    throw err;
+  }
 }
 
-export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
-  return request<JobStatusResponse>(`/video/jobs/${jobId}`);
+export async function getJobStatus(jobId: string): Promise<JobStatusResponse | ApiErrorResponse> {
+  try {
+    return await request<JobStatusResponse>(`/video/jobs/${jobId}`);
+  } catch (err) {
+    if (err instanceof ApiError) {
+      return { success: false, message: err.message, code: err.code as any };
+    }
+    throw err;
+  }
 }
 
-export async function cancelJob(jobId: string): Promise<JobStatusResponse> {
-  return request<JobStatusResponse>(`/video/jobs/${jobId}`, { method: "DELETE" });
+export async function cancelJob(jobId: string): Promise<JobStatusResponse | ApiErrorResponse> {
+  try {
+    return await request<JobStatusResponse>(`/video/jobs/${jobId}`, { method: "DELETE" });
+  } catch (err) {
+    if (err instanceof ApiError) {
+      return { success: false, message: err.message, code: err.code as any };
+    }
+    throw err;
+  }
 }

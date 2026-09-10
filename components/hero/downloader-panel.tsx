@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AnalyzeResponse, FormatOption, JobStatusResponse } from "@video-downloader/types";
+import type {
+  AnalyzeResponse,
+  FormatOption,
+  JobStatusResponse,
+  CreateDownloadResponse,
+  ApiErrorResponse,
+} from "@video-downloader/types";
 import { analyzeVideo, createDownload, cancelJob } from "@/lib/api";
 import { getJobFileUrl, getJobEventsUrl, ApiError } from "@/lib/api-shared";
 import { captureClientError } from "@/lib/sentry";
@@ -36,22 +42,30 @@ export function DownloaderPanel() {
 
   async function handleAnalyze() {
     setFlow({ step: "analyzing" });
-    try {
-      const result = await analyzeVideo(url.trim());
-      setFlow({ step: "analyzed", result });
-    } catch (err) {
-      setFlow({ step: "error", message: friendlyMessage(err) });
+    const result = await analyzeVideo(url.trim());
+    if ("message" in result) {
+      setFlow({ step: "error", message: result.message });
+    } else {
+      setFlow({ step: "analyzed", result: result as AnalyzeResponse });
     }
   }
 
   async function handleSelectFormat(format: FormatOption) {
     const formatLabel =
-      format.type === "video" ? `${format.resolution} ${format.container.toUpperCase()}` : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
+      format.type === "video"
+        ? `${format.resolution} ${format.container.toUpperCase()}`
+        : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
+
+    const result = await createDownload(url.trim(), format.id);
+    if ("message" in result) {
+      setFlow({ step: "download-error", message: result.message });
+      return;
+    }
+
+    const { jobId } = result as CreateDownloadResponse;
+    setFlow({ step: "downloading", jobId, progress: 0, formatLabel });
 
     try {
-      const { jobId } = await createDownload(url.trim(), format.id);
-      setFlow({ step: "downloading", jobId, progress: 0, formatLabel });
-
       // Replaces the old setInterval + getJobStatus poll (Phase 14, item
       // 19): the API pushes progress over SSE instead of the client
       // asking every 1.2s. `withCredentials` is required so the

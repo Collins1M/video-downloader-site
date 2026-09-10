@@ -14,7 +14,12 @@ function FormatRow({
   disabled: boolean;
 }) {
   const size = formatBytes(format.estimatedSize);
-  const label = format.type === "video" ? format.resolution : `${format.bitrateKbps} kbps`;
+  const label =
+    format.type === "video"
+      ? format.resolution
+      : format.type === "gif"
+      ? "Animated"
+      : `${format.bitrateKbps} kbps`;
 
   return (
     <li className="flex items-center gap-3 border-b border-line/60 px-4 py-3 last:border-b-0 sm:px-5">
@@ -52,6 +57,7 @@ export function FormatList({
 }) {
   const video = formats.filter((f) => f.type === "video");
   const audio = formats.filter((f) => f.type === "audio");
+  const gif = formats.filter((f) => f.type === "gif");
 
   return (
     <div className="animate-fade-up space-y-6">
@@ -60,6 +66,19 @@ export function FormatList({
           <p className="mb-2 px-1 font-mono text-xs uppercase tracking-wider text-ink-muted">Video</p>
           <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
             {video.map((f) => (
+              <FormatRow key={f.id} format={f} onSelect={onSelect} disabled={disabled} />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {gif.length > 0 && (
+        <div>
+          <p className="mb-2 px-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
+            Animated GIF
+          </p>
+          <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+            {gif.map((f) => (
               <FormatRow key={f.id} format={f} onSelect={onSelect} disabled={disabled} />
             ))}
           </ul>

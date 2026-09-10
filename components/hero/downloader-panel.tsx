@@ -54,6 +54,8 @@ export function DownloaderPanel() {
     const formatLabel =
       format.type === "video"
         ? `${format.resolution} ${format.container.toUpperCase()}`
+        : format.type === "gif"
+        ? "Animated GIF"
         : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
 
     const result = await createDownload(url.trim(), format.id);

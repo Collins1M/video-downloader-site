@@ -134,7 +134,11 @@ describe("DownloaderPanel", () => {
 
   it("shows the API's friendly error message when analyze fails", async () => {
     const user = userEvent.setup();
-    analyzeVideoMock.mockRejectedValue(new FakeApiError("Please enter a valid video URL.", "INVALID_URL"));
+    analyzeVideoMock.mockResolvedValue({
+      success: false,
+      message: "Please enter a valid video URL.",
+      code: "INVALID_URL",
+    });
 
     render(<DownloaderPanel />);
     await typeUrlAndAnalyze(user);

@@ -9,87 +9,47 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy Policy" effectiveDate="August 24, 2026">
-      <LegalSection heading="What this page covers">
+      <LegalSection heading="No accounts">
         <p>
-          Reel is a self-hosted video downloader. This page describes, plainly, what data passes
-          through the service while you use it and how long it sticks around — not a generic
-          template, but a description of what the code actually does.
+          Reel does not have user accounts or a saved history of what you have downloaded.
+          Every visitor is anonymous.
         </p>
       </LegalSection>
 
-      <LegalSection heading="No accounts, no library of what you&apos;ve downloaded">
+      <LegalSection heading="Anonymous session cookie">
         <p>
-          Reel doesn&apos;t have user accounts, sign-in, or a saved history of your downloads. Every
-          visitor is anonymous. There is no page anywhere that lists videos you&apos;ve previously
-          downloaded.
+          When you use Reel, we set a temporary session cookie. This is a random ID used
+          only to apply fair usage limits and ensure one visitor doesn&apos;t overload the
+          service. It is not used for tracking or advertising.
         </p>
       </LegalSection>
 
-      <LegalSection heading="The anonymous session cookie">
+      <LegalSection heading="Download data">
         <p>
-          On your first request, Reel sets an <code>session_id</code> cookie — a random identifier
-          with no personal information in it, marked HttpOnly so page scripts can&apos;t read it. It
-          exists for one reason: to apply per-visitor rate limits fairly, so one browser tab can&apos;t
-          be mistaken for another. It isn&apos;t used for tracking across sites or for advertising.
+          While a download is processing, we store basic details about the request to
+          track its progress. This includes the link you submitted and the current status
+          of the job. This information is deleted automatically once the download is
+          finished or has expired.
         </p>
       </LegalSection>
 
-      <LegalSection heading="What&apos;s stored while a download is processing">
+      <LegalSection heading="Automatic deletion">
         <p>
-          When you start a download, Reel creates a temporary job record to track its progress.
-          That record holds: the source URL you submitted, the format you chose, a status
-          (queued/processing/completed/failed/cancelled), a progress percentage, the video&apos;s title
-          and duration if known, the resulting file size once known, an error message if
-          something went wrong, and timestamps for when the job was created, started, and
-          completed. It also stores the requesting IP address and the anonymous session id, used
-          together to enforce the concurrent-download and rate limits described below.
-        </p>
-        <p>
-          This record is metadata only — Reel never stores the video or audio bytes themselves in
-          this table. The actual file lives briefly on temporary disk storage and is deleted once
-          it&apos;s been delivered, once it expires, or once processing fails (see below).
+          The files you download live briefly in temporary storage and are removed
+          immediately after you retrieve them. We do not store your downloads indefinitely.
         </p>
       </LegalSection>
 
-      <LegalSection heading="Temporary files are deleted automatically">
+      <LegalSection heading="No tracking">
         <p>
-          The downloaded file sits in temporary storage only long enough for you to retrieve it.
-          It&apos;s deleted immediately after your browser finishes downloading it. If you never
-          retrieve it, an expiry sweep removes it (and the job record) automatically after a
-          configured time-to-live window. Nothing is kept indefinitely by design.
+          Reel does not run advertising, use tracking pixels, or share your information
+          with third parties. The service is built to be private and secure.
         </p>
       </LegalSection>
 
-      <LegalSection heading="IP address and abuse prevention">
+      <LegalSection heading="Changes">
         <p>
-          Your IP address is used to apply rate limits (so the service stays usable for everyone)
-          and a concurrent-download cap per IP (so one visitor can&apos;t queue an unlimited number of
-          simultaneous jobs). It&apos;s associated with job records for this purpose and isn&apos;t shared
-          or sold.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="Error tracking">
-        <p>
-          If the operator running this instance has configured it, unexpected server errors may be
-          reported to Sentry for debugging. User-facing error messages shown to you are always
-          generic and never include stack traces, file paths, or database details — see the
-          service&apos;s exception handling, which is deliberately built to never leak internals in a
-          response. Error tracking is optional and disabled by default.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="No third-party ads or trackers">
-        <p>
-          Reel doesn&apos;t run advertising, analytics pixels, or third-party tracking scripts. The
-          only outbound network activity from your browser is to this service&apos;s own API.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="Changes to this policy">
-        <p>
-          If how this instance handles data changes, this page will be updated and the effective
-          date above will change accordingly.
+          If our data handling practices change, this policy will be updated accordingly.
         </p>
       </LegalSection>
     </LegalPage>

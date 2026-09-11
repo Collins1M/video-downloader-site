@@ -11,61 +11,46 @@ export default function TermsPage() {
     <LegalPage title="Terms of Service" effectiveDate="August 24, 2026">
       <LegalSection heading="Acceptable use">
         <p>
-          Reel is a tool for downloading video and audio you own, have permission to download, or
-          that&apos;s made available for downloading by its source. You&apos;re responsible for making sure
-          your use of any link you submit complies with the copyright terms, platform rules, and
-          laws that apply to it. Reel doesn&apos;t review the content of what you download and takes no
-          position on any specific source or link.
+          Reel is a tool for downloading video and audio you own or have permission to download.
+          You are responsible for ensuring your use of the service complies with all applicable
+          copyright terms and laws. Reel does not review your downloads and takes no position on any
+          source or link.
         </p>
       </LegalSection>
 
-      <LegalSection heading="No accounts required">
+      <LegalSection heading="No accounts">
         <p>
-          You don&apos;t need to register or sign in to use Reel. Every session is anonymous, tracked
-          only by a temporary cookie described in the Privacy Policy — there&apos;s no account to
-          create, and nothing to delete later, because nothing durable is kept in the first place.
+          You do not need to register to use Reel. Every session is anonymous. We do not keep
+          any durable records of your activity or identity.
         </p>
       </LegalSection>
 
-      <LegalSection heading="Rate limits and fair use">
+      <LegalSection heading="Fair use">
         <p>
-          To keep the service usable for everyone, requests are rate-limited per visitor, and the
-          number of downloads you can have processing at once is capped. These limits apply
-          per-tier — analyzing a video, starting a download, and checking on a job&apos;s status each
-          have their own limit — and are enforced automatically. Requests that exceed them are
-          rejected with a clear rate-limit response rather than silently dropped.
+          To keep the service available for everyone, we use automatic limits on how many
+          requests you can make and how many downloads you can process at once.
         </p>
       </LegalSection>
 
-      <LegalSection heading="Downloads are temporary">
+      <LegalSection heading="Temporary downloads">
         <p>
-          A completed download is available for retrieval for a limited window and is deleted
-          automatically afterward — see the Privacy Policy for specifics. If you don&apos;t retrieve a
-          file before it expires, you&apos;ll need to start the download again.
+          Completed downloads are kept for a very short time and are deleted automatically.
+          If you do not retrieve your file quickly, it will be removed and you will need
+          to start over.
         </p>
       </LegalSection>
 
       <LegalSection heading="No warranty">
         <p>
-          Reel is provided as-is. Video sources it depends on are outside its control and can
-          change or become unavailable at any time, which may cause an analysis or download to
-          fail. There&apos;s no guarantee that any particular link will succeed, or that the service
-          will be available without interruption.
+          Reel is provided &quot;as is.&quot; We cannot guarantee that any particular link will work
+          or that the service will be available without interruption.
         </p>
       </LegalSection>
 
-      <LegalSection heading="Limitation of liability">
+      <LegalSection heading="Changes">
         <p>
-          To the fullest extent permitted by law, the operator of this instance isn&apos;t liable for
-          any indirect, incidental, or consequential damages arising from your use of the service,
-          including damages related to content you download or a link&apos;s availability.
-        </p>
-      </LegalSection>
-
-      <LegalSection heading="Changes to these terms">
-        <p>
-          These terms may be updated as the service changes. Continued use after an update means
-          you accept the current version.
+          These terms may be updated as the service evolves. By continuing to use Reel,
+          you accept the current version of these terms.
         </p>
       </LegalSection>
     </LegalPage>

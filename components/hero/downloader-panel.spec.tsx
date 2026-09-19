@@ -136,7 +136,7 @@ describe("DownloaderPanel", () => {
     await typeUrlAndAnalyze(user);
 
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
-    expect(screen.getByText("example.com")).toBeInTheDocument();
+    expect(screen.getByText(/Detected on example.com/i)).toBeInTheDocument();
     expect(screen.getByText("1080p")).toBeInTheDocument();
     expect(analyzeVideoMock).toHaveBeenCalledWith("https://example.com/video");
   });

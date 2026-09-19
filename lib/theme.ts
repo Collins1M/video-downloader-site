@@ -38,7 +38,17 @@ export function getBrandTheme(source?: string): BrandTheme {
   if (!source) return DEFAULT_THEME;
 
   const key = source.toLowerCase();
-  const config = Object.entries(BRAND_CONFIGS).find(([brand]) => key.includes(brand))?.[1];
+
+  // Sort by length descending to match "twitter" before "x"
+  const config = Object.entries(BRAND_CONFIGS)
+    .sort(([a], [b]) => b.length - a.length)
+    .find(([brand]) => {
+      // Precise matching: brand should be a distinct part of the hostname
+      // e.g. "youtube" matches "youtube.com" or "www.youtube.com"
+      // but "x" won't match "example.com"
+      const regex = new RegExp(`(^|\\.)${brand}(\\.|$)`, 'i');
+      return regex.test(key) || key === brand;
+    })?.[1];
 
   if (!config) return { ...DEFAULT_THEME, name: source };
 

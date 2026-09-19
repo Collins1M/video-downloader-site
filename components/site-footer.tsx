@@ -36,7 +36,7 @@ export function SiteFooter() {
             <Link href="/privacy" className="transition-colors hover:text-ink">
               Privacy
             </Link>
-            <span>Built for content you're authorized to download.</span>
+            <span>Built for content you&apos;re authorized to download.</span>
           </nav>
         </div>
       </div>

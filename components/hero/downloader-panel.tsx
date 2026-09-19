@@ -5,6 +5,7 @@ import type { AnalyzeResponse, FormatOption, JobStatusResponse } from "@video-do
 import { analyzeVideo, createDownload, cancelJob } from "@/lib/api";
 import { getJobFileUrl, getJobEventsUrl, ApiError } from "@/lib/api-shared";
 import { captureClientError } from "@/lib/sentry";
+import { useTheme } from "@/components/theme-provider";
 import { UrlInputForm } from "./url-input-form";
 import { AnalyzingState } from "./analyzing-state";
 import { VideoInfoCard } from "./video-info-card";
@@ -24,6 +25,13 @@ export function DownloaderPanel() {
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const eventSourceRef = useRef<EventSource | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+
+  const { theme, setThemeFromSource } = useTheme();
+
+  // Trigger theme change when analyzed source changes
+  useEffect(() => {
+    setThemeFromSource(flow.step === "analyzed" ? flow.result.video.source : undefined);
+  }, [flow, setThemeFromSource]);
 
   const stopStreaming = useCallback(() => {
     if (eventSourceRef.current) {
@@ -149,7 +157,7 @@ export function DownloaderPanel() {
 
       {flow.step === "analyzed" && (
         <div className="space-y-6">
-          <VideoInfoCard video={flow.result.video} />
+          <VideoInfoCard video={flow.result.video} themeName={theme.name} />
           <FormatList formats={flow.result.formats} onSelect={handleSelectFormat} disabled={false} />
           <button
             type="button"

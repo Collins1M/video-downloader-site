@@ -11,9 +11,9 @@ module.exports = {
         ink: "#F3F2ED",
         "ink-muted": "#8B8D97",
         amber: {
-          DEFAULT: "#FFA94D",
-          dim: "#B87333",
-          bright: "#FFC078",
+          DEFAULT: "var(--brand-primary, #FFA94D)",
+          dim: "var(--brand-dim, #B87333)",
+          bright: "var(--brand-bright, #FFC078)",
         },
       },
       fontFamily: {

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ThemeProvider } from "@/components/theme-provider";
 import { DownloaderPanel } from "./downloader-panel";
 
 const {
@@ -115,7 +116,11 @@ describe("DownloaderPanel", () => {
   }
 
   it("renders the URL input initially", () => {
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     expect(screen.getByPlaceholderText("Paste video URL here...")).toBeInTheDocument();
   });
 
@@ -123,7 +128,11 @@ describe("DownloaderPanel", () => {
     const user = userEvent.setup();
     analyzeVideoMock.mockResolvedValue(analyzeResponse);
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
 
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
@@ -140,7 +149,11 @@ describe("DownloaderPanel", () => {
       code: "INVALID_URL",
     });
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
 
     await waitFor(() => expect(screen.getByText("Please enter a valid video URL.")).toBeInTheDocument());
@@ -151,7 +164,11 @@ describe("DownloaderPanel", () => {
     analyzeVideoMock.mockResolvedValue(analyzeResponse);
     createDownloadMock.mockResolvedValue({ jobId: "job1" });
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
 
@@ -177,7 +194,11 @@ describe("DownloaderPanel", () => {
 
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
 
@@ -199,7 +220,11 @@ describe("DownloaderPanel", () => {
     analyzeVideoMock.mockResolvedValue(analyzeResponse);
     createDownloadMock.mockResolvedValue({ jobId: "job1" });
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
 
@@ -226,7 +251,11 @@ describe("DownloaderPanel", () => {
     analyzeVideoMock.mockResolvedValue(analyzeResponse);
     createDownloadMock.mockResolvedValue({ jobId: "job1" });
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
 
@@ -248,7 +277,11 @@ describe("DownloaderPanel", () => {
     createDownloadMock.mockResolvedValue({ jobId: "job1" });
     cancelJobMock.mockResolvedValue({ id: "job1", status: "cancelled", progress: 10 });
 
-    render(<DownloaderPanel />);
+    render(
+      <ThemeProvider>
+        <DownloaderPanel />
+      </ThemeProvider>,
+    );
     await typeUrlAndAnalyze(user);
     await waitFor(() => expect(screen.getByText("Test Video")).toBeInTheDocument());
 

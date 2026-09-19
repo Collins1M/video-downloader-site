@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { axe } from "vitest-axe";
+import { ThemeProvider } from "@/components/theme-provider";
 import { UrlInputForm } from "@/components/hero/url-input-form";
 import { AnalyzingState } from "@/components/hero/analyzing-state";
 import { VideoInfoCard } from "@/components/hero/video-info-card";
@@ -26,74 +27,122 @@ const formats = [
 describe("Accessibility (axe)", () => {
   it("url input form (idle)", async () => {
     const { container } = render(
-      <UrlInputForm url="" onUrlChange={() => {}} onSubmit={() => {}} disabled={false} />,
+      <ThemeProvider>
+        <UrlInputForm url="" onUrlChange={() => {}} onSubmit={() => {}} disabled={false} />
+      </ThemeProvider>,
     );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("url input form (with a URL entered, clear button visible)", async () => {
     const { container } = render(
-      <UrlInputForm url="https://example.com/video" onUrlChange={() => {}} onSubmit={() => {}} disabled={false} />,
+      <ThemeProvider>
+        <UrlInputForm
+          url="https://example.com/video"
+          onUrlChange={() => {}}
+          onSubmit={() => {}}
+          disabled={false}
+        />
+      </ThemeProvider>,
     );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("url input form (submitting/disabled)", async () => {
     const { container } = render(
-      <UrlInputForm url="https://example.com/video" onUrlChange={() => {}} onSubmit={() => {}} disabled={true} />,
+      <ThemeProvider>
+        <UrlInputForm
+          url="https://example.com/video"
+          onUrlChange={() => {}}
+          onSubmit={() => {}}
+          disabled={true}
+        />
+      </ThemeProvider>,
     );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("analyzing state", async () => {
-    const { container } = render(<AnalyzingState />);
+    const { container } = render(
+      <ThemeProvider>
+        <AnalyzingState />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("video info card", async () => {
-    const { container } = render(<VideoInfoCard video={video} />);
+    const { container } = render(
+      <ThemeProvider>
+        <VideoInfoCard video={video} />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("format list", async () => {
-    const { container } = render(<FormatList formats={formats} onSelect={() => {}} disabled={false} />);
+    const { container } = render(
+      <ThemeProvider>
+        <FormatList formats={formats} onSelect={() => {}} disabled={false} />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("format list (empty)", async () => {
-    const { container } = render(<FormatList formats={[]} onSelect={() => {}} disabled={false} />);
+    const { container } = render(
+      <ThemeProvider>
+        <FormatList formats={[]} onSelect={() => {}} disabled={false} />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("download progress", async () => {
     const { container } = render(
-      <DownloadProgress progress={42} formatLabel="1080p · mp4" onCancel={() => {}} />,
+      <ThemeProvider>
+        <DownloadProgress progress={42} formatLabel="1080p · mp4" onCancel={() => {}} />
+      </ThemeProvider>,
     );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("FAQ (with a panel expanded)", async () => {
-    const { container } = render(<FAQ />);
+    const { container } = render(
+      <ThemeProvider>
+        <FAQ />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("site header", async () => {
-    const { container } = render(<SiteHeader />);
+    const { container } = render(
+      <ThemeProvider>
+        <SiteHeader />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("site footer", async () => {
-    const { container } = render(<SiteFooter />);
+    const { container } = render(
+      <ThemeProvider>
+        <SiteFooter />
+      </ThemeProvider>,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it("legal page layout", async () => {
     const { container } = render(
-      <LegalPage title="Terms of Service" effectiveDate="August 24, 2026">
-        <LegalSection heading="Acceptable use">
-          <p>Some legal copy.</p>
-        </LegalSection>
-      </LegalPage>,
+      <ThemeProvider>
+        <LegalPage title="Terms of Service" effectiveDate="August 24, 2026">
+          <LegalSection heading="Acceptable use">
+            <p>Some legal copy.</p>
+          </LegalSection>
+        </LegalPage>
+      </ThemeProvider>,
     );
     expect(await axe(container)).toHaveNoViolations();
   });

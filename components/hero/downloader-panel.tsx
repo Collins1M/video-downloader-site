@@ -34,9 +34,11 @@ export function DownloaderPanel() {
 
   const { theme, setThemeFromSource } = useTheme();
 
-  // Trigger theme change when analyzed source changes
+  // Trigger theme change when analyzed source changes, persisting theme through downloading until a new video is analyzed
   useEffect(() => {
-    setThemeFromSource(flow.step === "analyzed" ? flow.result.video.source : undefined);
+    if (flow.step === "analyzed") {
+      setThemeFromSource(flow.result.video.source);
+    }
   }, [flow, setThemeFromSource]);
 
   const stopStreaming = useCallback(() => {
@@ -50,11 +52,15 @@ export function DownloaderPanel() {
 
   async function handleAnalyze() {
     setFlow({ step: "analyzing" });
+    if (url.trim()) {
+      setThemeFromSource(url.trim());
+    }
     const result = await analyzeVideo(url.trim());
     if ("message" in result) {
       setFlow({ step: "error", message: result.message });
     } else {
       setFlow({ step: "analyzed", result: result as AnalyzeResponse });
+      setThemeFromSource((result as AnalyzeResponse).video.source);
     }
   }
 

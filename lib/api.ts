@@ -79,11 +79,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-export async function analyzeVideo(url: string): Promise<AnalyzeResponse | ApiErrorResponse> {
+export async function analyzeVideo(url: string, ageConsent?: boolean): Promise<AnalyzeResponse | ApiErrorResponse> {
   try {
     return await request<AnalyzeResponse>("/video/analyze", {
       method: "POST",
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, ageConsent }),
     });
   } catch (err) {
     if (err instanceof ApiError) {

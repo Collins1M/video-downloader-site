@@ -6,7 +6,6 @@ import type {
   FormatOption,
   JobStatusResponse,
   CreateDownloadResponse,
-  ApiErrorResponse,
 } from "@video-downloader/types";
 import { analyzeVideo, createDownload, cancelJob } from "@/lib/api";
 import { getJobFileUrl, getJobEventsUrl, ApiError } from "@/lib/api-shared";
@@ -17,6 +16,7 @@ import { AnalyzingState } from "./analyzing-state";
 import { VideoInfoCard } from "./video-info-card";
 import { FormatList } from "./format-list";
 import { DownloadProgress } from "./download-progress";
+import { AgeConsentModal } from "./age-consent-modal";
 
 type Flow =
   | { step: "idle" }
@@ -29,12 +29,13 @@ type Flow =
 export function DownloaderPanel() {
   const [url, setUrl] = useState("");
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
+  const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
   const { theme, setThemeFromSource } = useTheme();
 
-  // Trigger theme change when analyzed source changes, persisting theme through downloading until a new video is analyzed
+  // Trigger theme change when analyzed source changes
   useEffect(() => {
     if (flow.step === "analyzed") {
       setThemeFromSource(flow.result.video.source);
@@ -50,21 +51,30 @@ export function DownloaderPanel() {
 
   useEffect(() => stopStreaming, [stopStreaming]);
 
-  async function handleAnalyze() {
+  async function handleAnalyze(ageConsent: boolean = false) {
+    setShowAgeConsentModal(false);
     setFlow({ step: "analyzing" });
+
     if (url.trim()) {
       setThemeFromSource(url.trim());
     }
-    const result = await analyzeVideo(url.trim());
+
+    const result = await analyzeVideo(url.trim(), ageConsent);
+
     if ("message" in result) {
-      setFlow({ step: "error", message: result.message });
+      if (result.code === "AGE_VERIFICATION_REQUIRED") {
+        setShowAgeConsentModal(true);
+        setFlow({ step: "idle" });
+      } else {
+        setFlow({ step: "error", message: result.message });
+      }
     } else {
       setFlow({ step: "analyzed", result: result as AnalyzeResponse });
       setThemeFromSource((result as AnalyzeResponse).video.source);
     }
   }
 
-  async function handleSelectFormat(format: FormatOption) {
+  async function handleSelectFormat(format: FormatOption, itemUrl?: string) {
     const formatLabel =
       format.type === "video"
         ? `${format.resolution} ${format.container.toUpperCase()}`
@@ -72,7 +82,9 @@ export function DownloaderPanel() {
         ? `${format.resolution} Animated GIF`
         : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
 
-    const result = await createDownload(url.trim(), format.id);
+    const targetUrl = itemUrl || url.trim();
+    const result = await createDownload(targetUrl, format.id);
+
     if ("message" in result) {
       setFlow({ step: "download-error", message: result.message });
       return;
@@ -102,8 +114,6 @@ export function DownloaderPanel() {
           setFlow({ step: "downloading", jobId, progress: 100, formatLabel });
           downloadLinkRef.current?.setAttribute("href", fileUrl);
           downloadLinkRef.current?.click();
-          // Return to idle after a few seconds, giving enough time for the
-          // browser's download handoff to feel distinct from the UI reset.
           setTimeout(() => setFlow({ step: "idle" }), 5000);
           return;
         }
@@ -126,11 +136,6 @@ export function DownloaderPanel() {
       };
 
       source.onerror = () => {
-        // EventSource retries transparently on transient network errors,
-        // but a 404 (job genuinely gone) or a connection the browser has
-        // given up on both surface here too — the readyState tells them
-        // apart. CLOSED means the browser isn't going to retry itself,
-        // so treat it as terminal rather than leaving the UI stuck.
         if (source.readyState === EventSource.CLOSED) {
           stopStreaming();
           setFlow({ step: "download-error", message: "Lost connection while downloading. Please try again." });
@@ -147,7 +152,7 @@ export function DownloaderPanel() {
     try {
       await cancelJob(flow.jobId);
     } catch {
-      // Best-effort — the job will still self-expire server-side.
+      // Best-effort self-expire
     }
     setFlow({ step: "idle" });
   }
@@ -162,9 +167,15 @@ export function DownloaderPanel() {
       {/* Hidden anchor used purely to trigger the browser's native download UI once a job completes. */}
       <a ref={downloadLinkRef} className="hidden" download aria-hidden="true" />
 
+      <AgeConsentModal
+        isOpen={showAgeConsentModal}
+        onConfirm={() => handleAnalyze(true)}
+        onCancel={() => setShowAgeConsentModal(false)}
+      />
+
       {(flow.step === "idle" || flow.step === "error") && (
         <>
-          <UrlInputForm url={url} onUrlChange={setUrl} onSubmit={handleAnalyze} disabled={false} />
+          <UrlInputForm url={url} onUrlChange={setUrl} onSubmit={() => handleAnalyze(false)} disabled={false} />
           {flow.step === "error" && (
             <p className="mt-3 text-center font-mono text-sm text-amber">{flow.message}</p>
           )}
@@ -175,8 +186,35 @@ export function DownloaderPanel() {
 
       {flow.step === "analyzed" && (
         <div className="space-y-6">
-          <VideoInfoCard video={flow.result.video} themeName={theme.name} />
-          <FormatList formats={flow.result.formats} onSelect={handleSelectFormat} disabled={false} />
+          {flow.result.isPlaylist && flow.result.videos && flow.result.videos.length > 1 ? (
+            <div className="space-y-8">
+              <div className="rounded-2xl border border-amber/30 bg-surface p-4 text-center">
+                <span className="font-mono text-xs uppercase tracking-wider text-amber font-semibold">
+                  Multi-Video Playlist Detected ({flow.result.totalVideos || flow.result.videos.length} Videos)
+                </span>
+                <h2 className="mt-1 font-display text-lg font-bold text-ink">
+                  {flow.result.playlistTitle || "Extracted Videos"}
+                </h2>
+              </div>
+
+              {flow.result.videos.map((item, idx) => (
+                <div key={item.id || idx} className="space-y-4 rounded-2xl border border-line/60 bg-surface/50 p-4">
+                  <VideoInfoCard video={item.video} themeName={theme.name} itemIndex={idx} />
+                  <FormatList
+                    formats={item.formats}
+                    onSelect={(fmt) => handleSelectFormat(fmt, item.url)}
+                    disabled={false}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              <VideoInfoCard video={flow.result.video} themeName={theme.name} />
+              <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />
+            </>
+          )}
+
           <button
             type="button"
             onClick={handleReset}
@@ -213,9 +251,6 @@ export function DownloaderPanel() {
 
 function friendlyMessage(err: unknown): string {
   if (err instanceof ApiError) return err.message;
-  // Not an ApiError means something genuinely unexpected happened
-  // (network failure, unparseable response, a code bug) rather than an
-  // expected, already-friendly-messaged API failure — worth reporting.
   captureClientError(err);
   return "Something went wrong. Please try again.";
 }

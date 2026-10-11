@@ -15,6 +15,7 @@ export interface VideoInfo {
   thumbnail: string;
   duration: number; // seconds
   source: string; // domain
+  platform?: string;
 }
 
 export interface FormatOption {
@@ -28,12 +29,17 @@ export interface FormatOption {
 
 export interface AnalyzeRequest {
   url: string;
+  ageConsent?: boolean;
 }
 
 export interface AnalyzeResponse {
   success: boolean;
   video: VideoInfo;
   formats: FormatOption[];
+  isPlaylist?: boolean;
+  videos?: Array<{ id?: string; url: string; video: VideoInfo; formats: FormatOption[] }>;
+  totalVideos?: number;
+  playlistTitle?: string;
 }
 
 export interface CreateDownloadRequest {
@@ -67,7 +73,8 @@ export interface ApiErrorResponse {
     | "RATE_LIMITED"
     | "JOB_NOT_READY"
     | "FILE_EXPIRED"
-    | "INTERNAL_ERROR";
+    | "INTERNAL_ERROR"
+    | "AGE_VERIFICATION_REQUIRED";
 }
 
 // --- Queue contract (Phase 5) ---

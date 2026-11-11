@@ -1,7 +1,7 @@
 // Shared contracts between apps/web, apps/api, and apps/worker.
 // Keep this package framework-agnostic (no Nest/Next imports).
 
-export type MediaKind = "video" | "audio" | "gif";
+export type MediaKind = "video" | "audio" | "gif" | "image";
 
 export type JobStatus =
   | "queued"

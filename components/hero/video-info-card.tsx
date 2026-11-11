@@ -18,14 +18,12 @@ export function VideoInfoCard({
   let cardStyle: React.CSSProperties = {};
   if (isInstagram) {
     cardStyle = {
-      background: "linear-gradient(135deg, rgba(131,58,180,0.15) 0%, rgba(253,29,29,0.15) 50%, rgba(252,176,69,0.15) 100%)",
-      borderColor: "#e1306c",
+      background: "linear-gradient(135deg, rgba(131,58,180,0.28) 0%, rgba(253,29,29,0.28) 50%, rgba(252,176,69,0.28) 100%)",
       boxShadow: brandTheme.glowShadow,
     };
   } else if (isTikTok) {
     cardStyle = {
-      background: "linear-gradient(135deg, rgba(0,242,254,0.12) 0%, rgba(254,44,85,0.12) 100%)",
-      borderColor: "#00f2fe",
+      background: "linear-gradient(135deg, rgba(0,242,254,0.24) 0%, rgba(254,44,85,0.24) 100%)",
       boxShadow: brandTheme.glowShadow,
     };
   }

@@ -80,6 +80,8 @@ export function DownloaderPanel() {
         ? `${format.resolution} ${format.container.toUpperCase()}`
         : format.type === "gif"
         ? `${format.resolution} Animated GIF`
+        : format.type === "image"
+        ? `${format.resolution || "HD"} Image`
         : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
 
     const targetUrl = itemUrl || url.trim();

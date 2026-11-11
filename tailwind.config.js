@@ -17,8 +17,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "sans-serif"],
-        body: ["var(--font-body)", "sans-serif"],
+        display: ["var(--font-poppins)", "sans-serif"],
+        body: ["var(--font-poppins)", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
       keyframes: {

@@ -19,6 +19,8 @@ function FormatRow({
       ? format.resolution
       : format.type === "gif"
       ? `${format.resolution} GIF`
+      : format.type === "image"
+      ? format.resolution || "HD Image"
       : `${format.bitrateKbps} kbps`;
 
   return (
@@ -58,6 +60,7 @@ export function FormatList({
   const video = formats.filter((f) => f.type === "video");
   const audio = formats.filter((f) => f.type === "audio");
   const gif = formats.filter((f) => f.type === "gif");
+  const image = formats.filter((f) => f.type === "image");
 
   return (
     <div className="animate-fade-up space-y-6">
@@ -66,6 +69,19 @@ export function FormatList({
           <p className="mb-2 px-1 font-mono text-xs uppercase tracking-wider text-ink-muted">Video</p>
           <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
             {video.map((f) => (
+              <FormatRow key={f.id} format={f} onSelect={onSelect} disabled={disabled} />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {image.length > 0 && (
+        <div>
+          <p className="mb-2 px-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
+            Photo / Image
+          </p>
+          <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+            {image.map((f) => (
               <FormatRow key={f.id} format={f} onSelect={onSelect} disabled={disabled} />
             ))}
           </ul>
@@ -96,9 +112,9 @@ export function FormatList({
         </div>
       )}
 
-      {video.length === 0 && audio.length === 0 && (
+      {video.length === 0 && audio.length === 0 && gif.length === 0 && image.length === 0 && (
         <p className="rounded-2xl border border-line bg-surface p-6 text-center font-mono text-sm text-ink-muted">
-          No downloadable formats were found for this video.
+          No downloadable formats were found for this media.
         </p>
       )}
     </div>

@@ -6,7 +6,9 @@ import type {
   FormatOption,
   JobStatusResponse,
   CreateDownloadResponse,
+  AnalyzedVideoItem,
 } from "@video-downloader/types";
+import { Download } from "lucide-react";
 import { analyzeVideo, createDownload, cancelJob } from "@/lib/api";
 import { getJobFileUrl, getJobEventsUrl, ApiError } from "@/lib/api-shared";
 import { captureClientError } from "@/lib/sentry";
@@ -164,6 +166,14 @@ export function DownloaderPanel() {
     setFlow({ step: "idle" });
   }
 
+  async function handleDownloadAll(videos: AnalyzedVideoItem[]) {
+    for (const item of videos) {
+      if (item.formats && item.formats.length > 0) {
+        await handleSelectFormat(item.formats[0], item.url);
+      }
+    }
+  }
+
   return (
     <div className="w-full max-w-2xl">
       {/* Hidden anchor used purely to trigger the browser's native download UI once a job completes. */}
@@ -190,14 +200,30 @@ export function DownloaderPanel() {
         <div className="space-y-6">
           {flow.result.isPlaylist && flow.result.videos && flow.result.videos.length > 1 ? (
             <div className="space-y-8">
-              <div className="rounded-2xl border border-amber/30 bg-surface p-4 text-center">
-                <span className="font-mono text-xs uppercase tracking-wider text-amber font-semibold">
-                  Multi-Video Playlist Detected ({flow.result.totalVideos || flow.result.videos.length} Videos)
-                </span>
-                <h2 className="mt-1 font-display text-lg font-bold text-ink">
-                  {flow.result.playlistTitle || "Extracted Videos"}
-                </h2>
-              </div>
+              {(() => {
+                const isImageGallery = flow.result.videos.every((v) => v.formats.some((f) => f.type === "image") || v.video.duration === 0);
+                const count = flow.result.totalVideos || flow.result.videos.length;
+                return (
+                  <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-amber/30 bg-surface p-4 sm:flex-row">
+                    <div className="text-center sm:text-left">
+                      <span className="font-mono text-xs uppercase tracking-wider text-amber font-semibold">
+                        {isImageGallery ? `Multi-Image Gallery Detected (${count} Images)` : `Multi-Video Playlist Detected (${count} Videos)`}
+                      </span>
+                      <h2 className="mt-1 font-display text-lg font-bold text-ink">
+                        {flow.result.playlistTitle || (isImageGallery ? "Extracted Photos" : "Extracted Videos")}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadAll(flow.result.videos!)}
+                      className="flex items-center gap-2 rounded-xl bg-amber px-4 py-2 font-mono text-xs uppercase tracking-wider text-void font-semibold transition-opacity hover:opacity-90"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download All ({count})
+                    </button>
+                  </div>
+                );
+              })()}
 
               {flow.result.videos.map((item, idx) => (
                 <div key={item.id || idx} className="space-y-4 rounded-2xl border border-line/60 bg-surface/50 p-4">

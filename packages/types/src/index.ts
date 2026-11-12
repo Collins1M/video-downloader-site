@@ -27,6 +27,13 @@ export interface FormatOption {
   estimatedSize?: number; // bytes, optional
 }
 
+export interface AnalyzedVideoItem {
+  id: string;
+  url?: string;
+  video: VideoInfo;
+  formats: FormatOption[];
+}
+
 export interface AnalyzeRequest {
   url: string;
   ageConsent?: boolean;
@@ -37,7 +44,7 @@ export interface AnalyzeResponse {
   video: VideoInfo;
   formats: FormatOption[];
   isPlaylist?: boolean;
-  videos?: Array<{ id?: string; url: string; video: VideoInfo; formats: FormatOption[] }>;
+  videos?: AnalyzedVideoItem[];
   totalVideos?: number;
   playlistTitle?: string;
 }

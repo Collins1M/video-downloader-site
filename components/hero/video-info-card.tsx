@@ -76,11 +76,9 @@ export function VideoInfoCard({
               No preview
             </div>
           )}
-          {video.duration > 0 && (
-            <span className="absolute bottom-1 right-1 rounded bg-void/80 px-1.5 py-0.5 font-mono text-[10px] tabular text-ink">
-              {formatDuration(video.duration)}
-            </span>
-          )}
+          <span className="absolute bottom-1 right-1 rounded bg-void/80 px-1.5 py-0.5 font-mono text-[10px] tabular text-ink">
+            {video.duration > 0 ? formatDuration(video.duration) : "PHOTO"}
+          </span>
         </div>
 
         <div className="min-w-0 flex-1">

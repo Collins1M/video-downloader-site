@@ -6,7 +6,7 @@ import { X, Download, Play } from "lucide-react";
 interface MediaPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  video: VideoInfo;
+  video: VideoInfo & { url?: string };
   formats: FormatOption[];
   onDownload: (format: FormatOption) => void;
 }
@@ -22,10 +22,11 @@ export function MediaPreviewModal({
 
   const isVideo = video.duration > 0 || formats.some((f) => f.type === "video");
   const primaryFormat = formats[0];
+  const imageSrc = video.url || video.thumbnail;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/80 p-4 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-line bg-surface p-6 shadow-2xl animate-fade-up">
+      <div className="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-line bg-surface p-6 shadow-2xl animate-fade-up">
         <button
           type="button"
           onClick={onClose}
@@ -39,7 +40,7 @@ export function MediaPreviewModal({
           {video.title}
         </h3>
 
-        <div className="relative flex max-h-[60vh] items-center justify-center overflow-hidden rounded-xl bg-void">
+        <div className="relative flex max-h-[70vh] w-full items-center justify-center overflow-hidden rounded-xl bg-void p-2">
           {isVideo ? (
             <div className="relative aspect-video w-full flex items-center justify-center bg-void">
               {video.thumbnail ? (
@@ -66,9 +67,9 @@ export function MediaPreviewModal({
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={video.thumbnail}
+              src={imageSrc}
               alt={video.title}
-              className="max-h-[60vh] w-auto object-contain"
+              className="max-h-[65vh] w-auto max-w-full object-contain mx-auto"
               referrerPolicy="no-referrer"
             />
           )}

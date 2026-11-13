@@ -245,6 +245,7 @@ export function DownloaderPanel() {
                 <div key={item.id || idx} className="space-y-4 rounded-2xl border border-line/60 bg-surface/50 p-4">
                   <VideoInfoCard
                     video={item.video}
+                    formats={item.formats}
                     themeName={theme.name}
                     itemIndex={idx}
                     onClick={() => setPreviewMedia({ video: item.video, formats: item.formats, itemUrl: item.url })}
@@ -261,6 +262,7 @@ export function DownloaderPanel() {
             <>
               <VideoInfoCard
                 video={flow.result.video}
+                formats={flow.result.formats}
                 themeName={theme.name}
                 onClick={() => setPreviewMedia({ video: flow.result.video, formats: flow.result.formats })}
               />

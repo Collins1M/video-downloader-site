@@ -173,6 +173,7 @@ export function DownloaderPanel() {
     for (const item of videos) {
       if (item.formats && item.formats.length > 0) {
         await handleSelectFormat(item.formats[0], item.url);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   }

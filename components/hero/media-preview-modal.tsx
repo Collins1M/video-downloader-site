@@ -10,8 +10,9 @@ import { getJobFileUrl, getJobEventsUrl } from "@/lib/api-shared";
 interface MediaPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  video: VideoInfo & { url?: string };
+  video: VideoInfo;
   formats: FormatOption[];
+  itemUrl?: string;
   onDownload: (format: FormatOption) => void;
 }
 
@@ -20,6 +21,7 @@ export function MediaPreviewModal({
   onClose,
   video,
   formats,
+  itemUrl,
   onDownload,
 }: MediaPreviewModalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -31,8 +33,8 @@ export function MediaPreviewModal({
 
   const isVideo = video.duration > 0 || formats.some((f) => f.type === "video");
   const primaryFormat = formats.find((f) => f.type === "video") || formats[0];
-  const imageSrc = getHighResThumbnail(video.url || video.thumbnail, video.source);
-  const mediaUrl = video.url;
+  const mediaUrl = itemUrl || (video as any).url;
+  const imageSrc = getHighResThumbnail(mediaUrl || video.thumbnail, video.source);
 
   async function handlePlayVideo() {
     const isDirectVideo =
@@ -56,7 +58,7 @@ export function MediaPreviewModal({
     setPrepProgress(0);
 
     try {
-      const targetUrl = video.url || video.thumbnail;
+      const targetUrl = itemUrl || video.thumbnail;
       const res = await createDownload(targetUrl, primaryFormat.id);
 
       if ("message" in res) {

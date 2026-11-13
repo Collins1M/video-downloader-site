@@ -80,7 +80,7 @@ export function VideoInfoCard({
               src={thumbUrl}
               alt=""
               referrerPolicy="no-referrer"
-              className="h-full w-full object-cover"
+              className={`h-full w-full ${isVideo ? "object-cover" : "object-contain"}`}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center font-mono text-xs text-ink-muted">

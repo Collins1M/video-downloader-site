@@ -198,6 +198,7 @@ export function DownloaderPanel() {
         onClose={() => setPreviewMedia(null)}
         video={previewMedia?.video!}
         formats={previewMedia?.formats!}
+        itemUrl={previewMedia?.itemUrl}
         onDownload={(fmt) => handleSelectFormat(fmt, previewMedia?.itemUrl)}
       />
 
@@ -264,7 +265,7 @@ export function DownloaderPanel() {
                 video={flow.result.video}
                 formats={flow.result.formats}
                 themeName={theme.name}
-                onClick={() => setPreviewMedia({ video: flow.result.video, formats: flow.result.formats })}
+                onClick={() => setPreviewMedia({ video: flow.result.video, formats: flow.result.formats, itemUrl: flow.result.videos?.[0]?.url || url })}
               />
               <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />
             </>

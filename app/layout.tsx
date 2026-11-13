@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   },
   description:
     "Download supported online videos in your preferred quality and format with a fast, simple video downloader.",
+  icons: {
+    icon: "/favicon.ico",
+  },
   robots: { index: true, follow: true },
   openGraph: {
     title: "Video Downloader",

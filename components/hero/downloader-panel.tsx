@@ -35,6 +35,7 @@ export function DownloaderPanel() {
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<VideoInfo | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; status: string } | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
@@ -170,18 +171,46 @@ export function DownloaderPanel() {
   }
 
   async function handleDownloadAll(videos: AnalyzedVideoItem[]) {
+    const total = videos.length;
+    let current = 0;
+    setBatchProgress({ current: 0, total, status: "Starting batch download..." });
+
     for (const item of videos) {
       if (item.formats && item.formats.length > 0) {
+        current++;
+        setBatchProgress({ current, total, status: `Downloading ${current}/${total}` });
         await handleSelectFormat(item.formats[0], item.url);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
+
+    setBatchProgress({ current: total, total, status: "All images downloaded!" });
+    setTimeout(() => setBatchProgress(null), 5000);
   }
 
   return (
     <div className="w-full max-w-2xl">
       {/* Hidden anchor used purely to trigger the browser's native download UI once a job completes. */}
       <a ref={downloadLinkRef} className="hidden" download aria-hidden="true" />
+
+      {batchProgress && (
+        <div className="mb-4 animate-fade-up rounded-2xl border border-amber/50 bg-surface p-4 shadow-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`h-3 w-3 rounded-full ${batchProgress.current === batchProgress.total ? 'bg-green-500' : 'animate-ping bg-amber'}`} />
+            <div>
+              <p className="font-display text-sm font-semibold text-ink">
+                {batchProgress.status === "All images downloaded!" ? "Batch Complete" : "Downloading Gallery"}
+              </p>
+              <p className="font-mono text-xs text-amber">
+                {batchProgress.status === "All images downloaded!" ? "All images downloaded!" : `Downloading ${batchProgress.current}/${batchProgress.total}`}
+              </p>
+            </div>
+          </div>
+          <div className="font-mono text-xs text-ink-muted">
+            {Math.round((batchProgress.current / batchProgress.total) * 100)}%
+          </div>
+        </div>
+      )}
 
       <AgeConsentModal
         isOpen={showAgeConsentModal}

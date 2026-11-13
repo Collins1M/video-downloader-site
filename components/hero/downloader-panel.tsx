@@ -19,6 +19,8 @@ import { VideoInfoCard } from "./video-info-card";
 import { FormatList } from "./format-list";
 import { DownloadProgress } from "./download-progress";
 import { AgeConsentModal } from "./age-consent-modal";
+import { MediaPreviewModal } from "./media-preview-modal";
+import type { VideoInfo } from "@video-downloader/types";
 
 type Flow =
   | { step: "idle" }
@@ -32,6 +34,7 @@ export function DownloaderPanel() {
   const [url, setUrl] = useState("");
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState<VideoInfo | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
@@ -185,6 +188,12 @@ export function DownloaderPanel() {
         onCancel={() => setShowAgeConsentModal(false)}
       />
 
+      <MediaPreviewModal
+        isOpen={Boolean(previewMedia)}
+        video={previewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
+
       {(flow.step === "idle" || flow.step === "error") && (
         <>
           <UrlInputForm url={url} onUrlChange={setUrl} onSubmit={() => handleAnalyze(false)} disabled={false} />
@@ -228,6 +237,12 @@ export function DownloaderPanel() {
               {flow.result.videos.map((item, idx) => (
                 <div key={item.id || idx} className="space-y-4 rounded-2xl border border-line/60 bg-surface/50 p-4">
                   <VideoInfoCard video={item.video} themeName={theme.name} itemIndex={idx} />
+                  <VideoInfoCard
+                    video={item.video}
+                    themeName={theme.name}
+                    itemIndex={idx}
+                    onThumbnailClick={(v) => setPreviewMedia(v)}
+                  />
                   <FormatList
                     formats={item.formats}
                     onSelect={(fmt) => handleSelectFormat(fmt, item.url)}
@@ -239,6 +254,11 @@ export function DownloaderPanel() {
           ) : (
             <>
               <VideoInfoCard video={flow.result.video} themeName={theme.name} />
+              <VideoInfoCard
+                video={flow.result.video}
+                themeName={theme.name}
+                onThumbnailClick={(v) => setPreviewMedia(v)}
+              />
               <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />
             </>
           )}

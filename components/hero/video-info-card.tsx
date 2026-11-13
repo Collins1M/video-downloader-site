@@ -6,10 +6,12 @@ export function VideoInfoCard({
   video,
   themeName,
   itemIndex,
+  onThumbnailClick,
 }: {
   video: VideoInfo;
   themeName?: string;
   itemIndex?: number;
+  onThumbnailClick?: (video: VideoInfo) => void;
 }) {
   const brandTheme = getBrandTheme(video.platform || video.source);
   const isInstagram = video.platform === "instagram" || video.source?.includes("instagram");
@@ -57,12 +59,19 @@ export function VideoInfoCard({
         {itemIndex !== undefined && (
           <span className="rounded-full bg-surface-raised px-2 py-0.5 font-mono text-[10px] text-ink-muted">
             Video #{itemIndex + 1}
+            {video.duration > 0 ? `Video #${itemIndex + 1}` : `Photo #${itemIndex + 1}`}
           </span>
         )}
       </div>
 
       <div className="flex gap-4 sm:gap-5">
         <div className="relative aspect-video w-28 flex-none overflow-hidden rounded-lg bg-surface-raised sm:w-40">
+        <div
+          onClick={() => onThumbnailClick?.(video)}
+          className={`relative ${video.duration > 0 ? "aspect-video" : "aspect-square"} w-28 flex-none overflow-hidden rounded-lg bg-surface-raised sm:w-40 ${
+            onThumbnailClick ? "cursor-pointer group hover:ring-2 hover:ring-amber/50 transition-all" : ""
+          }`}
+        >
           {video.thumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -70,6 +79,7 @@ export function VideoInfoCard({
               alt=""
               referrerPolicy="no-referrer"
               className="h-full w-full object-cover"
+              className="h-full w-full object-contain bg-black/20 group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center font-mono text-xs text-ink-muted">

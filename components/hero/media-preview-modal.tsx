@@ -35,7 +35,16 @@ export function MediaPreviewModal({
   const mediaUrl = video.url;
 
   async function handlePlayVideo() {
-    if (mediaUrl && (mediaUrl.endsWith(".mp4") || mediaUrl.endsWith(".webm") || mediaUrl.includes(".mp4?"))) {
+    const isDirectVideo =
+      mediaUrl &&
+      (mediaUrl.endsWith(".mp4") ||
+        mediaUrl.endsWith(".webm") ||
+        mediaUrl.includes(".mp4?") ||
+        mediaUrl.includes(".webm?") ||
+        mediaUrl.includes("cdninstagram") ||
+        mediaUrl.includes("fbcdn"));
+
+    if (isDirectVideo) {
       setStreamUrl(mediaUrl);
       setIsPlaying(true);
       return;

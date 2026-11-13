@@ -6,10 +6,12 @@ export function VideoInfoCard({
   video,
   themeName,
   itemIndex,
+  onClick,
 }: {
   video: VideoInfo;
   themeName?: string;
   itemIndex?: number;
+  onClick?: () => void;
 }) {
   const brandTheme = getBrandTheme(video.platform || video.source);
   const isInstagram = video.platform === "instagram" || video.source?.includes("instagram");
@@ -31,7 +33,12 @@ export function VideoInfoCard({
   return (
     <div
       style={cardStyle}
-      className="relative flex animate-fade-up flex-col gap-4 rounded-2xl border border-line bg-surface p-4 transition-all duration-300 sm:p-5"
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`relative flex animate-fade-up flex-col gap-4 rounded-2xl border border-line bg-surface p-4 transition-all duration-300 sm:p-5 ${
+        onClick ? "cursor-pointer hover:border-amber/50 hover:shadow-lg" : ""
+      }`}
     >
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">

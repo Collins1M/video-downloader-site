@@ -7,6 +7,7 @@ import type {
   JobStatusResponse,
   CreateDownloadResponse,
   AnalyzedVideoItem,
+  VideoInfo,
 } from "@video-downloader/types";
 import { Download } from "lucide-react";
 import { analyzeVideo, createDownload, cancelJob } from "@/lib/api";
@@ -19,6 +20,7 @@ import { VideoInfoCard } from "./video-info-card";
 import { FormatList } from "./format-list";
 import { DownloadProgress } from "./download-progress";
 import { AgeConsentModal } from "./age-consent-modal";
+import { MediaPreviewModal } from "./media-preview-modal";
 
 type Flow =
   | { step: "idle" }
@@ -32,6 +34,12 @@ export function DownloaderPanel() {
   const [url, setUrl] = useState("");
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
+  const [previewMedia, setPreviewMedia] = useState<{
+    video: VideoInfo;
+    formats: FormatOption[];
+    itemUrl?: string;
+  } | null>(null);
+
   const eventSourceRef = useRef<EventSource | null>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
@@ -185,6 +193,14 @@ export function DownloaderPanel() {
         onCancel={() => setShowAgeConsentModal(false)}
       />
 
+      <MediaPreviewModal
+        isOpen={previewMedia !== null}
+        onClose={() => setPreviewMedia(null)}
+        video={previewMedia?.video!}
+        formats={previewMedia?.formats!}
+        onDownload={(fmt) => handleSelectFormat(fmt, previewMedia?.itemUrl)}
+      />
+
       {(flow.step === "idle" || flow.step === "error") && (
         <>
           <UrlInputForm url={url} onUrlChange={setUrl} onSubmit={() => handleAnalyze(false)} disabled={false} />
@@ -227,7 +243,12 @@ export function DownloaderPanel() {
 
               {flow.result.videos.map((item, idx) => (
                 <div key={item.id || idx} className="space-y-4 rounded-2xl border border-line/60 bg-surface/50 p-4">
-                  <VideoInfoCard video={item.video} themeName={theme.name} itemIndex={idx} />
+                  <VideoInfoCard
+                    video={item.video}
+                    themeName={theme.name}
+                    itemIndex={idx}
+                    onClick={() => setPreviewMedia({ video: item.video, formats: item.formats, itemUrl: item.url })}
+                  />
                   <FormatList
                     formats={item.formats}
                     onSelect={(fmt) => handleSelectFormat(fmt, item.url)}
@@ -238,7 +259,11 @@ export function DownloaderPanel() {
             </div>
           ) : (
             <>
-              <VideoInfoCard video={flow.result.video} themeName={theme.name} />
+              <VideoInfoCard
+                video={flow.result.video}
+                themeName={theme.name}
+                onClick={() => setPreviewMedia({ video: flow.result.video, formats: flow.result.formats })}
+              />
               <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />
             </>
           )}

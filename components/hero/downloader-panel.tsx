@@ -7,6 +7,7 @@ import type {
   JobStatusResponse,
   CreateDownloadResponse,
   AnalyzedVideoItem,
+  VideoInfo,
 } from "@video-downloader/types";
 import { Download } from "lucide-react";
 import { analyzeVideo, createDownload, cancelJob } from "@/lib/api";
@@ -20,7 +21,6 @@ import { FormatList } from "./format-list";
 import { DownloadProgress } from "./download-progress";
 import { AgeConsentModal } from "./age-consent-modal";
 import { MediaPreviewModal } from "./media-preview-modal";
-import type { VideoInfo } from "@video-downloader/types";
 
 type Flow =
   | { step: "idle" }
@@ -236,11 +236,11 @@ export function DownloaderPanel() {
 
               {flow.result.videos.map((item, idx) => (
                 <div key={item.id || idx} className="space-y-4 rounded-2xl border border-line/60 bg-surface/50 p-4">
-                  <VideoInfoCard video={item.video} themeName={theme.name} itemIndex={idx} />
                   <VideoInfoCard
                     video={item.video}
                     themeName={theme.name}
                     itemIndex={idx}
+                    formats={item.formats}
                     onThumbnailClick={(v) => setPreviewMedia(v)}
                   />
                   <FormatList
@@ -253,10 +253,10 @@ export function DownloaderPanel() {
             </div>
           ) : (
             <>
-              <VideoInfoCard video={flow.result.video} themeName={theme.name} />
               <VideoInfoCard
                 video={flow.result.video}
                 themeName={theme.name}
+                formats={flow.result.formats}
                 onThumbnailClick={(v) => setPreviewMedia(v)}
               />
               <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />

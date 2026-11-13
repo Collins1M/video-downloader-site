@@ -28,3 +28,15 @@ export function hostnameFromUrl(url: string): string | null {
     return null;
   }
 }
+
+export function getHighResThumbnail(thumbnailUrl?: string, source?: string): string {
+  if (!thumbnailUrl) return "";
+  if (thumbnailUrl.includes("ytimg.com") || thumbnailUrl.includes("youtube.com")) {
+    return thumbnailUrl
+      .replace(/\/mqdefault\.jpg$/, "/maxresdefault.jpg")
+      .replace(/\/hqdefault\.jpg$/, "/maxresdefault.jpg")
+      .replace(/\/sddefault\.jpg$/, "/maxresdefault.jpg")
+      .replace(/\/default\.jpg$/, "/maxresdefault.jpg");
+  }
+  return thumbnailUrl;
+}

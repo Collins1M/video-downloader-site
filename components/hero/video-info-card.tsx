@@ -1,21 +1,27 @@
-import type { VideoInfo } from "@video-downloader/types";
-import { formatDuration } from "@/lib/format";
+import type { VideoInfo, FormatOption } from "@video-downloader/types";
+import { formatDuration, getHighResThumbnail } from "@/lib/format";
 import { getBrandTheme } from "@/lib/theme";
 
 export function VideoInfoCard({
   video,
   themeName,
   itemIndex,
+  formats,
+  onClick,
   onThumbnailClick,
 }: {
   video: VideoInfo;
   themeName?: string;
   itemIndex?: number;
+  formats?: FormatOption[];
+  onClick?: () => void;
   onThumbnailClick?: (video: VideoInfo) => void;
 }) {
   const brandTheme = getBrandTheme(video.platform || video.source);
   const isInstagram = video.platform === "instagram" || video.source?.includes("instagram");
   const isTikTok = video.platform === "tiktok" || video.source?.includes("tiktok");
+  const isVideo = video.duration > 0 || (formats ? formats.some((f) => f.type === "video") : !isInstagram);
+  const thumbUrl = getHighResThumbnail(video.thumbnail, video.source);
 
   let cardStyle: React.CSSProperties = {};
   if (isInstagram) {
@@ -30,10 +36,22 @@ export function VideoInfoCard({
     };
   }
 
+  const handleThumbClick = (e: React.MouseEvent) => {
+    if (onThumbnailClick) {
+      e.stopPropagation();
+      onThumbnailClick(video);
+    }
+  };
+
   return (
     <div
       style={cardStyle}
-      className="relative flex animate-fade-up flex-col gap-4 rounded-2xl border border-line bg-surface p-4 transition-all duration-300 sm:p-5"
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`relative flex animate-fade-up flex-col gap-4 rounded-2xl border border-line bg-surface p-4 transition-all duration-300 sm:p-5 ${
+        onClick ? "cursor-pointer hover:border-amber/50 hover:shadow-lg" : ""
+      }`}
     >
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
@@ -58,16 +76,14 @@ export function VideoInfoCard({
 
         {itemIndex !== undefined && (
           <span className="rounded-full bg-surface-raised px-2 py-0.5 font-mono text-[10px] text-ink-muted">
-            Video #{itemIndex + 1}
             {video.duration > 0 ? `Video #${itemIndex + 1}` : `Photo #${itemIndex + 1}`}
           </span>
         )}
       </div>
 
       <div className="flex gap-4 sm:gap-5">
-        <div className="relative aspect-video w-28 flex-none overflow-hidden rounded-lg bg-surface-raised sm:w-40">
         <div
-          onClick={() => onThumbnailClick?.(video)}
+          onClick={handleThumbClick}
           className={`relative ${video.duration > 0 ? "aspect-video" : "aspect-square"} w-28 flex-none overflow-hidden rounded-lg bg-surface-raised sm:w-40 ${
             onThumbnailClick ? "cursor-pointer group hover:ring-2 hover:ring-amber/50 transition-all" : ""
           }`}
@@ -75,10 +91,9 @@ export function VideoInfoCard({
           {video.thumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={video.thumbnail}
+              src={thumbUrl}
               alt=""
               referrerPolicy="no-referrer"
-              className="h-full w-full object-cover"
               className="h-full w-full object-contain bg-black/20 group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
@@ -87,7 +102,7 @@ export function VideoInfoCard({
             </div>
           )}
           <span className="absolute bottom-1 right-1 rounded bg-void/80 px-1.5 py-0.5 font-mono text-[10px] tabular text-ink">
-            {video.duration > 0 ? formatDuration(video.duration) : "PHOTO"}
+            {video.duration > 0 ? formatDuration(video.duration) : isVideo ? "VIDEO" : "PHOTO"}
           </span>
         </div>
 

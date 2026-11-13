@@ -38,12 +38,5 @@ export function getHighResThumbnail(thumbnailUrl?: string, source?: string): str
       .replace(/\/sddefault\.jpg$/, "/maxresdefault.jpg")
       .replace(/\/default\.jpg$/, "/maxresdefault.jpg");
   }
-  if (thumbnailUrl.includes("instagram") || thumbnailUrl.includes("fbcdn.net")) {
-    return thumbnailUrl
-      .replace(/\/s\d+x\d+\//g, "/")
-      .replace(/\/p\d+x\d+\//g, "/")
-      .replace(/\/c\d+,\d+,\d+,\d+\//g, "/")
-      .replace(/[?&]stp=[^&]+/g, "");
-  }
   return thumbnailUrl;
 }

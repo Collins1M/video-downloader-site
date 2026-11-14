@@ -42,6 +42,7 @@ export function DownloaderPanel() {
     isDownloading?: boolean;
   } | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const lastResultRef = useRef<AnalyzeResponse | null>(null);
 
   const { theme, setThemeFromSource } = useTheme();
 
@@ -172,8 +173,10 @@ export function DownloaderPanel() {
         setFlow({ step: "error", message: result.message });
       }
     } else {
-      setFlow({ step: "analyzed", result: result as AnalyzeResponse });
-      setThemeFromSource((result as AnalyzeResponse).video.source);
+      const analyzeRes = result as AnalyzeResponse;
+      lastResultRef.current = analyzeRes;
+      setFlow({ step: "analyzed", result: analyzeRes });
+      setThemeFromSource(analyzeRes.video.source);
     }
   }
 
@@ -218,7 +221,13 @@ export function DownloaderPanel() {
           setFlow({ step: "downloading", jobId, progress: 100, formatLabel });
           try {
             await downloadFileBlob(jobId);
-            setTimeout(() => setFlow({ step: "idle" }), 3000);
+            setTimeout(() => {
+              if (lastResultRef.current) {
+                setFlow({ step: "analyzed", result: lastResultRef.current });
+              } else {
+                setFlow({ step: "idle" });
+              }
+            }, 1500);
           } catch (dlErr: any) {
             setFlow({
               step: "download-error",
@@ -236,7 +245,11 @@ export function DownloaderPanel() {
 
         if (status.status === "cancelled") {
           stopStreaming();
-          setFlow({ step: "idle" });
+          if (lastResultRef.current) {
+            setFlow({ step: "analyzed", result: lastResultRef.current });
+          } else {
+            setFlow({ step: "idle" });
+          }
           return;
         }
 
@@ -269,6 +282,7 @@ export function DownloaderPanel() {
 
   function handleReset() {
     stopStreaming();
+    lastResultRef.current = null;
     setFlow({ step: "idle" });
   }
 

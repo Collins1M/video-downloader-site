@@ -35,9 +35,13 @@ export function DownloaderPanel() {
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<VideoInfo | null>(null);
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; status: string } | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+    status: string;
+    isDownloading?: boolean;
+  } | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
-  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
   const { theme, setThemeFromSource } = useTheme();
 
@@ -56,6 +60,99 @@ export function DownloaderPanel() {
   }, []);
 
   useEffect(() => stopStreaming, [stopStreaming]);
+
+  async function downloadFileBlob(jobId: string, defaultFilename: string = "download") {
+    const fileUrl = getJobFileUrl(jobId);
+    const response = await fetch(fileUrl, { credentials: "include" });
+    if (!response.ok) {
+      throw new Error(`File fetch failed with status ${response.status}`);
+    }
+
+    let filename = defaultFilename;
+    const disposition = response.headers.get("Content-Disposition");
+    if (disposition && disposition.includes("filename=")) {
+      const match = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+      if (match && match[1]) {
+        filename = match[1].replace(/['"]/g, "").trim();
+      }
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
+  }
+
+  function executeDownloadJob(
+    targetUrl: string,
+    formatId: string,
+    onProgress?: (progress: number) => void,
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await createDownload(targetUrl, formatId);
+        if ("message" in result) {
+          reject(new Error(result.message));
+          return;
+        }
+
+        const { jobId } = result as CreateDownloadResponse;
+        const eventsUrl = getJobEventsUrl(jobId);
+        const source = new EventSource(eventsUrl, { withCredentials: true });
+
+        source.onmessage = async (event) => {
+          try {
+            const status: JobStatusResponse = JSON.parse(event.data);
+
+            if (status.status === "completed") {
+              source.close();
+              onProgress?.(100);
+              try {
+                await downloadFileBlob(jobId);
+                resolve();
+              } catch (dlErr) {
+                reject(dlErr);
+              }
+              return;
+            }
+
+            if (status.status === "failed") {
+              source.close();
+              reject(new Error(status.error ?? "Download processing failed"));
+              return;
+            }
+
+            if (status.status === "cancelled") {
+              source.close();
+              reject(new Error("Download cancelled"));
+              return;
+            }
+
+            if (status.progress !== undefined) {
+              onProgress?.(status.progress);
+            }
+          } catch (parseErr) {
+            source.close();
+            reject(parseErr);
+          }
+        };
+
+        source.onerror = () => {
+          if (source.readyState === EventSource.CLOSED) {
+            source.close();
+            reject(new Error("Connection closed"));
+          }
+        };
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
 
   async function handleAnalyze(ageConsent: boolean = false) {
     setShowAgeConsentModal(false);
@@ -106,7 +203,7 @@ export function DownloaderPanel() {
       const source = new EventSource(eventsUrl, { withCredentials: true });
       eventSourceRef.current = source;
 
-      source.onmessage = (event) => {
+      source.onmessage = async (event) => {
         let status: JobStatusResponse;
         try {
           status = JSON.parse(event.data);
@@ -117,12 +214,17 @@ export function DownloaderPanel() {
         }
 
         if (status.status === "completed") {
-          const fileUrl = getJobFileUrl(jobId);
           stopStreaming();
           setFlow({ step: "downloading", jobId, progress: 100, formatLabel });
-          downloadLinkRef.current?.setAttribute("href", fileUrl);
-          downloadLinkRef.current?.click();
-          setTimeout(() => setFlow({ step: "idle" }), 5000);
+          try {
+            await downloadFileBlob(jobId);
+            setTimeout(() => setFlow({ step: "idle" }), 3000);
+          } catch (dlErr: any) {
+            setFlow({
+              step: "download-error",
+              message: dlErr?.message || "Failed to save downloaded file. Please try again.",
+            });
+          }
           return;
         }
 
@@ -171,27 +273,60 @@ export function DownloaderPanel() {
   }
 
   async function handleDownloadAll(videos: AnalyzedVideoItem[]) {
-    const total = videos.length;
-    let current = 0;
-    setBatchProgress({ current: 0, total, status: "Starting batch download..." });
+    if (batchProgress?.isDownloading) return;
 
-    for (const item of videos) {
-      if (item.formats && item.formats.length > 0) {
-        current++;
-        setBatchProgress({ current, total, status: `Downloading ${current}/${total}` });
-        await handleSelectFormat(item.formats[0], item.url);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+    const total = videos.length;
+    setBatchProgress({ current: 0, total, status: "Starting batch download...", isDownloading: true });
+
+    let successCount = 0;
+
+    for (let i = 0; i < videos.length; i++) {
+      const item = videos[i];
+      if (!item.formats || item.formats.length === 0) continue;
+
+      const current = i + 1;
+      setBatchProgress({
+        current,
+        total,
+        status: `Downloading item ${current} of ${total}...`,
+        isDownloading: true,
+      });
+
+      try {
+        await executeDownloadJob(item.url, item.formats[0].id, (progress) => {
+          setBatchProgress({
+            current,
+            total,
+            status: `Downloading item ${current} of ${total} (${progress}%)...`,
+            isDownloading: true,
+          });
+        });
+        successCount++;
+        // Short pause between file saves so browser download queue processes cleanly
+        await new Promise((r) => setTimeout(r, 600));
+      } catch (err: any) {
+        console.error(`Failed to download item ${current}:`, err);
+        setBatchProgress({
+          current,
+          total,
+          status: `Failed item ${current}: ${err?.message || "Error"}`,
+          isDownloading: true,
+        });
+        await new Promise((r) => setTimeout(r, 1200));
       }
     }
 
-    setBatchProgress({ current: total, total, status: "All images downloaded!" });
+    setBatchProgress({
+      current: total,
+      total,
+      status: `Batch complete! Downloaded ${successCount} of ${total} items.`,
+      isDownloading: false,
+    });
     setTimeout(() => setBatchProgress(null), 5000);
   }
 
   return (
     <div className="w-full max-w-2xl">
-      {/* Hidden anchor used purely to trigger the browser's native download UI once a job completes. */}
-      <a ref={downloadLinkRef} className="hidden" download aria-hidden="true" />
 
       {batchProgress && (
         <div className="mb-4 animate-fade-up rounded-2xl border border-amber/50 bg-surface p-4 shadow-xl flex items-center justify-between">
@@ -199,10 +334,10 @@ export function DownloaderPanel() {
             <div className={`h-3 w-3 rounded-full ${batchProgress.current === batchProgress.total ? 'bg-green-500' : 'animate-ping bg-amber'}`} />
             <div>
               <p className="font-display text-sm font-semibold text-ink">
-                {batchProgress.status === "All images downloaded!" ? "Batch Complete" : "Downloading Gallery"}
+                {!batchProgress.isDownloading ? "Batch Complete" : "Downloading Gallery"}
               </p>
               <p className="font-mono text-xs text-amber">
-                {batchProgress.status === "All images downloaded!" ? "All images downloaded!" : `Downloading ${batchProgress.current}/${batchProgress.total}`}
+                {batchProgress.status}
               </p>
             </div>
           </div>
@@ -254,11 +389,12 @@ export function DownloaderPanel() {
                     </div>
                     <button
                       type="button"
+                      disabled={Boolean(batchProgress?.isDownloading)}
                       onClick={() => handleDownloadAll(flow.result.videos!)}
-                      className="flex items-center gap-2 rounded-xl bg-amber px-4 py-2 font-mono text-xs uppercase tracking-wider text-void font-semibold transition-opacity hover:opacity-90"
+                      className="flex items-center gap-2 rounded-xl bg-amber px-4 py-2 font-mono text-xs uppercase tracking-wider text-void font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none"
                     >
                       <Download className="h-4 w-4" />
-                      Download All ({count})
+                      {batchProgress?.isDownloading ? "Downloading..." : `Download All (${count})`}
                     </button>
                   </div>
                 );

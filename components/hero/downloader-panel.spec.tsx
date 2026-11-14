@@ -192,6 +192,25 @@ describe("DownloaderPanel", () => {
     analyzeVideoMock.mockResolvedValue(analyzeResponse);
     createDownloadMock.mockResolvedValue({ jobId: "job1" });
 
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "Content-Disposition": 'attachment; filename="test.mp4"' }),
+        blob: async () => new Blob(["fake-data"], { type: "video/mp4" }),
+      }),
+    );
+    if (typeof URL.createObjectURL !== "function") {
+      URL.createObjectURL = vi.fn().mockReturnValue("blob:mock-url");
+    } else {
+      vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-url");
+    }
+    if (typeof URL.revokeObjectURL !== "function") {
+      URL.revokeObjectURL = vi.fn();
+    } else {
+      vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    }
+
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
 
     render(
@@ -213,6 +232,7 @@ describe("DownloaderPanel", () => {
     expect(source.closed).toBe(true);
 
     clickSpy.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it("shows a friendly error and closes the stream if a job fails", async () => {

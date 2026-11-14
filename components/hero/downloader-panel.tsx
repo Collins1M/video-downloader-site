@@ -282,7 +282,7 @@ export function DownloaderPanel() {
 
     for (let i = 0; i < videos.length; i++) {
       const item = videos[i];
-      if (!item.formats || item.formats.length === 0) continue;
+      if (!item.url || !item.formats || item.formats.length === 0) continue;
 
       const current = i + 1;
       setBatchProgress({

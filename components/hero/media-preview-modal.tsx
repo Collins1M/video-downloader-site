@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { X, ExternalLink } from "lucide-react";
 import type { VideoInfo, FormatOption } from "@video-downloader/types";
 
@@ -11,6 +11,12 @@ interface MediaPreviewModalProps {
 }
 
 export function MediaPreviewModal({ isOpen, video, onClose }: MediaPreviewModalProps) {
+  const [videoError, setVideoError] = useState(false);
+
+  useEffect(() => {
+    setVideoError(false);
+  }, [video]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -55,23 +61,39 @@ export function MediaPreviewModal({ isOpen, video, onClose }: MediaPreviewModalP
           </button>
         </div>
 
-        <div className="flex flex-1 items-center justify-center overflow-auto bg-black/40 p-4">
-          {!isImage && video.videoUrl ? (
-            <video
-              src={video.videoUrl}
-              controls
-              autoPlay
-              playsInline
-              className="max-h-[75vh] w-auto max-w-full rounded-lg shadow-lg bg-black"
-            />
+        <div className="flex flex-1 flex-col items-center justify-center overflow-auto bg-black/40 p-4 gap-2">
+          {!isImage && video.videoUrl && !videoError ? (
+            <>
+              <video
+                src={video.videoUrl}
+                controls
+                autoPlay
+                playsInline
+                onError={() => {
+                  console.warn("[MediaPreviewModal] Direct stream playback failed. Falling back to thumbnail preview image.");
+                  setVideoError(true);
+                }}
+                className="max-h-[70vh] w-auto max-w-full rounded-lg shadow-lg bg-black"
+              />
+              <p className="font-mono text-xs text-ink-muted">
+                Direct stream playback (falls back to thumbnail if codecs/CORS restrict).
+              </p>
+            </>
           ) : video.thumbnail ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={video.thumbnail}
-              alt={video.title}
-              referrerPolicy="no-referrer"
-              className="max-h-[75vh] w-auto max-w-full rounded-lg object-contain shadow-lg"
-            />
+            <>
+              {videoError && !isImage && (
+                <p className="font-mono text-xs text-amber mb-2">
+                  Stream preview restricted by CORS/codecs. Showing thumbnail preview:
+                </p>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={video.thumbnail}
+                alt={video.title}
+                referrerPolicy="no-referrer"
+                className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain shadow-lg"
+              />
+            </>
           ) : (
             <p className="font-mono text-sm text-ink-muted">No preview available</p>
           )}

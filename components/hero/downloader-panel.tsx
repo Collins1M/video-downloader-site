@@ -20,6 +20,7 @@ import { VideoInfoCard } from "./video-info-card";
 import { FormatList } from "./format-list";
 import { DownloadProgress } from "./download-progress";
 import { AgeConsentModal } from "./age-consent-modal";
+import { AuthConsentModal } from "./auth-consent-modal";
 import { MediaPreviewModal } from "./media-preview-modal";
 
 type Flow =
@@ -34,6 +35,7 @@ export function DownloaderPanel() {
   const [url, setUrl] = useState("");
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
+  const [showAuthConsentModal, setShowAuthConsentModal] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<VideoInfo | null>(null);
   const [batchProgress, setBatchProgress] = useState<{
     current: number;
@@ -157,6 +159,7 @@ export function DownloaderPanel() {
 
   async function handleAnalyze(ageConsent: boolean = false) {
     setShowAgeConsentModal(false);
+    setShowAuthConsentModal(false);
     setFlow({ step: "analyzing" });
 
     if (url.trim()) {
@@ -169,6 +172,14 @@ export function DownloaderPanel() {
       if (result.code === "AGE_VERIFICATION_REQUIRED") {
         setShowAgeConsentModal(true);
         setFlow({ step: "idle" });
+      } else if (result.code === "AUTHENTICATION_REQUIRED") {
+        setShowAuthConsentModal(true);
+        setFlow({ step: "idle" });
+      } else if (result.code === "UNSUPPORTED_SOURCE" && result.message.toLowerCase().includes("photo")) {
+        setFlow({
+          step: "error",
+          message: "TikTok photo slideshows/carousels are currently not supported by the extractor. Please try a video link.",
+        });
       } else {
         setFlow({ step: "error", message: result.message });
       }
@@ -218,7 +229,8 @@ export function DownloaderPanel() {
 
         if (status.status === "completed") {
           stopStreaming();
-          setFlow({ step: "downloading", jobId, progress: 100, formatLabel: `${formatLabel} (Downloading to browser...)` });
+          console.info("[Downloader] Download completed on server. Finalizing & merging video/audio before browser download...");
+          setFlow({ step: "downloading", jobId, progress: 100, formatLabel: `${formatLabel} (Finalizing & merging video/audio... Please wait)` });
           try {
             await downloadFileBlob(jobId);
             setTimeout(() => {
@@ -253,9 +265,14 @@ export function DownloaderPanel() {
           return;
         }
 
-        setFlow((prev) =>
-          prev.step === "downloading" ? { ...prev, progress: status.progress } : prev,
-        );
+        if (status.progress !== undefined) {
+          if (status.progress === 100) {
+            console.info("[Downloader] Download progress reached 100%. Waiting for server-side FFmpeg muxing/merging...");
+          }
+          setFlow((prev) =>
+            prev.step === "downloading" ? { ...prev, progress: status.progress } : prev,
+          );
+        }
       };
 
       source.onerror = () => {
@@ -365,6 +382,11 @@ export function DownloaderPanel() {
         isOpen={showAgeConsentModal}
         onConfirm={() => handleAnalyze(true)}
         onCancel={() => setShowAgeConsentModal(false)}
+      />
+
+      <AuthConsentModal
+        isOpen={showAuthConsentModal}
+        onClose={() => setShowAuthConsentModal(false)}
       />
 
       <MediaPreviewModal

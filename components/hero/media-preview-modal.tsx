@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { X, ExternalLink } from "lucide-react";
-import type { VideoInfo } from "@video-downloader/types";
+import type { VideoInfo, FormatOption } from "@video-downloader/types";
 
 interface MediaPreviewModalProps {
   isOpen: boolean;
-  video: VideoInfo | null;
+  video: (VideoInfo & { videoUrl?: string; formats?: FormatOption[] }) | null;
   onClose: () => void;
 }
 
@@ -27,7 +27,10 @@ export function MediaPreviewModal({ isOpen, video, onClose }: MediaPreviewModalP
 
   if (!isOpen || !video) return null;
 
-  const isImage = video.duration === 0 || !video.duration;
+  const isVideo =
+    (video.duration && video.duration > 0) ||
+    (video.formats ? video.formats.some((f) => f.type === "video" || f.type === "gif") : false);
+  const isImage = !isVideo;
 
   return (
     <div
@@ -53,7 +56,15 @@ export function MediaPreviewModal({ isOpen, video, onClose }: MediaPreviewModalP
         </div>
 
         <div className="flex flex-1 items-center justify-center overflow-auto bg-black/40 p-4">
-          {video.thumbnail ? (
+          {!isImage && video.videoUrl ? (
+            <video
+              src={video.videoUrl}
+              controls
+              autoPlay
+              playsInline
+              className="max-h-[75vh] w-auto max-w-full rounded-lg shadow-lg bg-black"
+            />
+          ) : video.thumbnail ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={video.thumbnail}
@@ -69,10 +80,10 @@ export function MediaPreviewModal({ isOpen, video, onClose }: MediaPreviewModalP
         {video.thumbnail && (
           <div className="flex items-center justify-between border-t border-line bg-surface/80 px-5 py-2.5">
             <span className="font-mono text-xs text-ink-muted">
-              {isImage ? "Photo Preview" : "Video Thumbnail"}
+              {isImage ? "Photo Preview" : "Video Player"}
             </span>
             <a
-              href={video.thumbnail}
+              href={video.videoUrl || video.thumbnail}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 font-mono text-xs text-amber hover:underline"

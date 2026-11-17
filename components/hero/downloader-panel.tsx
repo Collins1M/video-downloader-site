@@ -218,7 +218,7 @@ export function DownloaderPanel() {
 
         if (status.status === "completed") {
           stopStreaming();
-          setFlow({ step: "downloading", jobId, progress: 100, formatLabel });
+          setFlow({ step: "downloading", jobId, progress: 100, formatLabel: `${formatLabel} (Downloading to browser...)` });
           try {
             await downloadFileBlob(jobId);
             setTimeout(() => {
@@ -421,7 +421,7 @@ export function DownloaderPanel() {
                     themeName={theme.name}
                     itemIndex={idx}
                     formats={item.formats}
-                    onThumbnailClick={(v) => setPreviewMedia(v)}
+                    onThumbnailClick={(v) => setPreviewMedia({ ...v, videoUrl: item.url, formats: item.formats })}
                   />
                   <FormatList
                     formats={item.formats}
@@ -437,7 +437,7 @@ export function DownloaderPanel() {
                 video={flow.result.video}
                 themeName={theme.name}
                 formats={flow.result.formats}
-                onThumbnailClick={(v) => setPreviewMedia(v)}
+                onThumbnailClick={(v) => setPreviewMedia({ ...v, videoUrl: flow.result.videos?.[0]?.url || url.trim(), formats: flow.result.formats })}
               />
               <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />
             </>

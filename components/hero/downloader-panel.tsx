@@ -36,7 +36,7 @@ export function DownloaderPanel() {
   const [flow, setFlow] = useState<Flow>({ step: "idle" });
   const [showAgeConsentModal, setShowAgeConsentModal] = useState(false);
   const [showAuthConsentModal, setShowAuthConsentModal] = useState(false);
-  const [previewMedia, setPreviewMedia] = useState<VideoInfo | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<(VideoInfo & { videoUrl?: string; formats?: FormatOption[] }) | null>(null);
   const [batchProgress, setBatchProgress] = useState<{
     current: number;
     total: number;

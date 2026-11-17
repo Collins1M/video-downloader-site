@@ -16,6 +16,7 @@ export interface VideoInfo {
   duration: number; // seconds
   source: string; // domain
   platform?: string;
+  videoUrl?: string;
 }
 
 export interface FormatOption {
@@ -81,7 +82,8 @@ export interface ApiErrorResponse {
     | "JOB_NOT_READY"
     | "FILE_EXPIRED"
     | "INTERNAL_ERROR"
-    | "AGE_VERIFICATION_REQUIRED";
+    | "AGE_VERIFICATION_REQUIRED"
+    | "AUTHENTICATION_REQUIRED";
 }
 
 // --- Queue contract (Phase 5) ---

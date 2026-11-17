@@ -11,11 +11,14 @@ interface MediaPreviewModalProps {
 }
 
 export function MediaPreviewModal({ isOpen, video, onClose }: MediaPreviewModalProps) {
+  const videoKey = (video?.title ?? "") + (video?.thumbnail ?? "");
+  const [prevVideoKey, setPrevVideoKey] = useState(videoKey);
   const [videoError, setVideoError] = useState(false);
 
-  useEffect(() => {
+  if (videoKey !== prevVideoKey) {
+    setPrevVideoKey(videoKey);
     setVideoError(false);
-  }, [video]);
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

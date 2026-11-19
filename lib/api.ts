@@ -22,8 +22,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         Cookie: cookieStore.toString(),
         ...init?.headers,
       },
-      // Ensure we don't hang the server action forever
-      signal: AbortSignal.timeout(60000),
+      // Ensure we don't hang the server action forever. Must be LONGER than the backend's
+      // analyze timeout (+ its one plain retry), otherwise slow-but-fine sites are reported
+      // as "backend unreachable" while the API is still working.
+      signal: AbortSignal.timeout(90_000),
     });
   } catch (err) {
     console.error(`Fetch error for ${url}:`, err);
@@ -96,11 +98,12 @@ export async function analyzeVideo(url: string, ageConsent?: boolean): Promise<A
 export async function createDownload(
   url: string,
   formatId: string,
+  ageConsent?: boolean,
 ): Promise<CreateDownloadResponse | ApiErrorResponse> {
   try {
     return await request<CreateDownloadResponse>("/video/download", {
       method: "POST",
-      body: JSON.stringify({ url, formatId }),
+      body: JSON.stringify({ url, formatId, ...(ageConsent ? { ageConsent: true } : {}) }),
     });
   } catch (err) {
     if (err instanceof ApiError) {

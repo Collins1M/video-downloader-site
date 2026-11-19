@@ -12,6 +12,14 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * URL the preview <video> should use for a media URL returned by /analyze. Goes through the
+ * API's relay because raw CDN links are hotlink-protected / bound to the server's IP.
+ */
+export function getPreviewUrl(mediaUrl: string): string {
+  return `${API_BASE_URL}/video/preview?url=${encodeURIComponent(mediaUrl)}`;
+}
+
 export function getJobFileUrl(jobId: string): string {
   return `${API_BASE_URL}/video/jobs/${jobId}/file`;
 }

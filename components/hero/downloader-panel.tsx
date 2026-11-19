@@ -45,6 +45,9 @@ export function DownloaderPanel() {
   } | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const lastResultRef = useRef<AnalyzeResponse | null>(null);
+  // The user's answer to the age prompt for the URL currently analysed. Sent with the download
+  // so the worker can re-extract age-gated media (it used to fail there).
+  const ageConsentRef = useRef(false);
 
   const { theme, setThemeFromSource } = useTheme();
 
@@ -98,7 +101,7 @@ export function DownloaderPanel() {
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        const result = await createDownload(targetUrl, formatId);
+        const result = await createDownload(targetUrl, formatId, ageConsentRef.current);
         if ("message" in result) {
           reject(new Error(result.message));
           return;
@@ -160,6 +163,7 @@ export function DownloaderPanel() {
   async function handleAnalyze(ageConsent: boolean = false) {
     setShowAgeConsentModal(false);
     setShowAuthConsentModal(false);
+    ageConsentRef.current = ageConsent;
     setFlow({ step: "analyzing" });
 
     if (url.trim()) {
@@ -196,13 +200,13 @@ export function DownloaderPanel() {
       format.type === "video"
         ? `${format.resolution} ${format.container.toUpperCase()}`
         : format.type === "gif"
-        ? `${format.resolution} Animated GIF`
-        : format.type === "image"
-        ? `${format.resolution || "HD"} Image`
-        : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
+          ? `${format.resolution} Animated GIF`
+          : format.type === "image"
+            ? `${format.resolution || "HD"} Image`
+            : `${format.bitrateKbps} kbps ${format.container.toUpperCase()}`;
 
     const targetUrl = itemUrl || url.trim();
-    const result = await createDownload(targetUrl, format.id);
+    const result = await createDownload(targetUrl, format.id, ageConsentRef.current);
 
     if ("message" in result) {
       setFlow({ step: "download-error", message: result.message });
@@ -443,7 +447,7 @@ export function DownloaderPanel() {
                     themeName={theme.name}
                     itemIndex={idx}
                     formats={item.formats}
-                    onThumbnailClick={(v) => setPreviewMedia({ ...v, videoUrl: v.videoUrl || item.url, formats: item.formats })}
+                    onThumbnailClick={(v) => setPreviewMedia({ ...v, formats: item.formats })}
                   />
                   <FormatList
                     formats={item.formats}
@@ -459,7 +463,7 @@ export function DownloaderPanel() {
                 video={flow.result.video}
                 themeName={theme.name}
                 formats={flow.result.formats}
-                onThumbnailClick={(v) => setPreviewMedia({ ...v, videoUrl: v.videoUrl || flow.result.videos?.[0]?.url || url.trim(), formats: flow.result.formats })}
+                onThumbnailClick={(v) => setPreviewMedia({ ...v, formats: flow.result.formats })}
               />
               <FormatList formats={flow.result.formats} onSelect={(fmt) => handleSelectFormat(fmt)} disabled={false} />
             </>

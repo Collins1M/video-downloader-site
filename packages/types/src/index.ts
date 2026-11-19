@@ -17,6 +17,8 @@ export interface VideoInfo {
   source: string; // domain
   platform?: string;
   videoUrl?: string;
+  /** How `videoUrl` must be played: "file" = <video src>, "hls" = via hls.js. */
+  previewKind?: "file" | "hls";
 }
 
 export interface FormatOption {
@@ -53,6 +55,8 @@ export interface AnalyzeResponse {
 export interface CreateDownloadRequest {
   url: string;
   formatId: string;
+  /** Set when the user already confirmed the age-gate prompt during analyze. */
+  ageConsent?: boolean;
 }
 
 export interface CreateDownloadResponse {
@@ -83,7 +87,8 @@ export interface ApiErrorResponse {
     | "FILE_EXPIRED"
     | "INTERNAL_ERROR"
     | "AGE_VERIFICATION_REQUIRED"
-    | "AUTHENTICATION_REQUIRED";
+    | "AUTHENTICATION_REQUIRED"
+    | "SOURCE_BLOCKED";
 }
 
 // --- Queue contract (Phase 5) ---

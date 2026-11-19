@@ -10,7 +10,8 @@ function buildSecurityHeaders() {
 
   const apiOrigin = (() => {
     try {
-      return new URL(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").origin;
+      return new URL(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000")
+        .origin;
     } catch {
       // Malformed env value shouldn't take the whole app down — fall
       // back to same-origin only, which just means cross-origin API
@@ -31,6 +32,10 @@ function buildSecurityHeaders() {
     // arbitrary https hosts, by nature of what this app does. Still
     // blocks http: and javascript: schemes.
     `img-src 'self' https: data:`,
+    // WITHOUT media-src the browser falls back to default-src 'self' and silently refuses to
+    // load any <video src>, so the preview modal always dropped to the thumbnail.
+    // The preview is relayed through the API origin; https: covers direct CDN fallbacks.
+    `media-src 'self' blob: https: ${apiOrigin}`,
     `font-src 'self' data:`,
     `connect-src 'self' ${apiOrigin}`,
     `frame-ancestors 'none'`,
@@ -44,7 +49,10 @@ function buildSecurityHeaders() {
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "X-Frame-Options", value: "DENY" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-    { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+    {
+      key: "Permissions-Policy",
+      value: "camera=(), microphone=(), geolocation=()",
+    },
   ];
 }
 

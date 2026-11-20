@@ -175,7 +175,7 @@ describe("DownloaderPanel", () => {
     const downloadButtons = screen.getAllByRole("button", { name: /download 1080p mp4/i });
     await user.click(downloadButtons[0]);
 
-    await waitFor(() => expect(createDownloadMock).toHaveBeenCalledWith("https://example.com/video", "1080p-mp4"));
+    await waitFor(() => expect(createDownloadMock).toHaveBeenCalledWith("https://example.com/video", "1080p-mp4", false));
     expect(screen.getByText(/preparing your download/i)).toBeInTheDocument();
 
     await waitFor(() => expect(MockEventSource.instances).toHaveLength(1));
